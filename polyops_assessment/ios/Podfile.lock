@@ -1,0 +1,74 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_keyboard_visibility_temp_fork (0.0.1):
+    - Flutter
+  - flutter_local_notifications (0.0.1):
+    - Flutter
+  - quill_native_bridge_ios (0.0.1):
+    - Flutter
+  - sqlite3 (3.52.0):
+    - sqlite3/common (= 3.52.0)
+  - sqlite3/common (3.52.0)
+  - sqlite3/dbstatvtab (3.52.0):
+    - sqlite3/common
+  - sqlite3/fts5 (3.52.0):
+    - sqlite3/common
+  - sqlite3/math (3.52.0):
+    - sqlite3/common
+  - sqlite3/perf-threadsafe (3.52.0):
+    - sqlite3/common
+  - sqlite3/rtree (3.52.0):
+    - sqlite3/common
+  - sqlite3/session (3.52.0):
+    - sqlite3/common
+  - sqlite3_flutter_libs (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - sqlite3 (~> 3.52.0)
+    - sqlite3/dbstatvtab
+    - sqlite3/fts5
+    - sqlite3/math
+    - sqlite3/perf-threadsafe
+    - sqlite3/rtree
+    - sqlite3/session
+  - url_launcher_ios (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_keyboard_visibility_temp_fork (from `.symlinks/plugins/flutter_keyboard_visibility_temp_fork/ios`)
+  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - quill_native_bridge_ios (from `.symlinks/plugins/quill_native_bridge_ios/ios`)
+  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - sqlite3
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_keyboard_visibility_temp_fork:
+    :path: ".symlinks/plugins/flutter_keyboard_visibility_temp_fork/ios"
+  flutter_local_notifications:
+    :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  quill_native_bridge_ios:
+    :path: ".symlinks/plugins/quill_native_bridge_ios/ios"
+  sqlite3_flutter_libs:
+    :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_keyboard_visibility_temp_fork: 8a8809c4129e31d25fca77446e0f3fd548122ced
+  flutter_local_notifications: df98d66e515e1ca797af436137b4459b160ad8c9
+  quill_native_bridge_ios: 2b01d585fcc73d0f5eed78c0bd244ee564b06f5a
+  sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
+  sqlite3_flutter_libs: f9114e4bbe1f2e03dd543373c53d23245982ca13
+  url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
+
+PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+
+COCOAPODS: 1.16.2
