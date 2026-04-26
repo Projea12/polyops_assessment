@@ -11,6 +11,18 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:polyops_assessment/data/datasources/local/app_database.dart'
+    as _i788;
+import 'package:polyops_assessment/data/datasources/local/outbox_dao.dart'
+    as _i690;
+import 'package:polyops_assessment/data/datasources/local/task_dao.dart'
+    as _i562;
+import 'package:polyops_assessment/data/remote/i_remote_task_datasource.dart'
+    as _i652;
+import 'package:polyops_assessment/data/remote/mock_remote_task_datasource.dart'
+    as _i969;
+import 'package:polyops_assessment/data/repositories/task_repository.dart'
+    as _i765;
 import 'package:polyops_assessment/domain/repositories/i_task_repository.dart'
     as _i361;
 import 'package:polyops_assessment/domain/usecases/task/add_comment_usecase.dart'
@@ -31,6 +43,19 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
+    gh.singleton<_i788.AppDatabase>(() => _i788.AppDatabase());
+    gh.lazySingleton<_i652.IRemoteTaskDataSource>(
+      () => _i969.MockRemoteTaskDataSource(),
+    );
+    gh.lazySingleton<_i690.OutboxDao>(
+      () => _i690.OutboxDao(gh<_i788.AppDatabase>()),
+    );
+    gh.lazySingleton<_i562.TaskDao>(
+      () => _i562.TaskDao(gh<_i788.AppDatabase>()),
+    );
+    gh.lazySingleton<_i361.ITaskRepository>(
+      () => _i765.TaskRepository(gh<_i562.TaskDao>(), gh<_i690.OutboxDao>()),
+    );
     gh.lazySingleton<_i294.AddCommentUseCase>(
       () => _i294.AddCommentUseCase(gh<_i361.ITaskRepository>()),
     );
