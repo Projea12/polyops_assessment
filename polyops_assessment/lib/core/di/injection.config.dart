@@ -35,6 +35,8 @@ import 'package:polyops_assessment/domain/usecases/task/move_task_usecase.dart'
     as _i1065;
 import 'package:polyops_assessment/domain/usecases/task/update_task_usecase.dart'
     as _i67;
+import 'package:polyops_assessment/presentation/task/bloc/board_bloc.dart'
+    as _i276;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -70,6 +72,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i67.UpdateTaskUseCase>(
       () => _i67.UpdateTaskUseCase(gh<_i361.ITaskRepository>()),
+    );
+    gh.factory<_i276.BoardBloc>(
+      () => _i276.BoardBloc(
+        gh<_i361.ITaskRepository>(),
+        gh<_i1065.MoveTaskUseCase>(),
+      ),
     );
     return this;
   }
