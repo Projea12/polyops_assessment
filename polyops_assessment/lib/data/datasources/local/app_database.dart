@@ -105,7 +105,7 @@ class DocumentsTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@singleton
+@lazySingleton
 @DriftDatabase(tables: [
   TasksTable,
   CommentsTable,

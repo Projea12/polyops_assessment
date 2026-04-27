@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:polyops_assessment/core/sync/sync_service.dart';
 
-import '../../../core/di/injection.dart';
 import '../../../domain/entities/sync_conflict.dart';
+import '../sync/bloc/sync_bloc.dart';
 
 class ConflictResolutionSheet extends StatefulWidget {
   const ConflictResolutionSheet._();
 
   static Future<void> show(BuildContext context) {
+    final syncBloc = context.read<SyncBloc>();
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const ConflictResolutionSheet._(),
+      builder: (_) => BlocProvider.value(
+        value: syncBloc,
+        child: const ConflictResolutionSheet._(),
+      ),
     );
   }
 
@@ -23,57 +27,65 @@ class ConflictResolutionSheet extends StatefulWidget {
 }
 
 class _ConflictResolutionSheetState extends State<ConflictResolutionSheet> {
-  final _syncService = getIt<SyncService>();
-  late List<SyncConflict> _conflicts;
   final Set<String> _resolving = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _conflicts = List.of(_syncService.conflicts);
-  }
-
-  Future<void> _resolve(SyncConflict conflict, {required bool keepLocal}) async {
+  void _resolve(SyncConflict conflict, {required bool keepLocal}) {
     setState(() => _resolving.add(conflict.taskId));
-    await _syncService.resolveConflict(conflict, keepLocal: keepLocal);
-    if (!mounted) return;
-    setState(() {
-      _resolving.remove(conflict.taskId);
-      _conflicts.removeWhere((c) => c.taskId == conflict.taskId);
-    });
-    if (_conflicts.isEmpty) Navigator.pop(context);
+    context.read<SyncBloc>().add(
+          ConflictResolved(conflict: conflict, keepLocal: keepLocal),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.88),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _handle(),
-          _header(),
-          const Divider(height: 1),
-          Flexible(
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-              itemCount: _conflicts.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 16),
-              itemBuilder: (_, i) => _ConflictCard(
-                conflict: _conflicts[i],
-                isResolving: _resolving.contains(_conflicts[i].taskId),
-                onKeepLocal: () => _resolve(_conflicts[i], keepLocal: true),
-                onUseServer: () => _resolve(_conflicts[i], keepLocal: false),
-              ),
+    return BlocListener<SyncBloc, SyncState>(
+      listener: (context, state) {
+        if (state.conflicts.isEmpty) {
+          Navigator.pop(context);
+          return;
+        }
+        setState(() {
+          _resolving.removeWhere(
+            (id) => !state.conflicts.any((c) => c.taskId == id),
+          );
+        });
+      },
+      child: BlocBuilder<SyncBloc, SyncState>(
+        builder: (context, state) {
+          return Container(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.88),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
-          ),
-        ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _handle(),
+                _header(state.conflicts.length),
+                const Divider(height: 1),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                    itemCount: state.conflicts.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 16),
+                    itemBuilder: (_, i) => _ConflictCard(
+                      conflict: state.conflicts[i],
+                      isResolving:
+                          _resolving.contains(state.conflicts[i].taskId),
+                      onKeepLocal: () =>
+                          _resolve(state.conflicts[i], keepLocal: true),
+                      onUseServer: () =>
+                          _resolve(state.conflicts[i], keepLocal: false),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -90,7 +102,7 @@ class _ConflictResolutionSheetState extends State<ConflictResolutionSheet> {
         ),
       );
 
-  Widget _header() => Padding(
+  Widget _header(int count) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
         child: Row(
           children: [
@@ -115,9 +127,9 @@ class _ConflictResolutionSheetState extends State<ConflictResolutionSheet> {
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF1A2332))),
                   Text(
-                    '${_conflicts.length} conflict${_conflicts.length == 1 ? '' : 's'} need your attention',
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey.shade500),
+                    '$count conflict${count == 1 ? '' : 's'} need your attention',
+                    style:
+                        TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),
                 ],
               ),
@@ -169,7 +181,8 @@ class _ConflictCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
@@ -230,11 +243,13 @@ class _ConflictCard extends StatelessWidget {
                           side: const BorderSide(color: Color(0xFF1B5E37)),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 10),
                         ),
                         child: const Text('Keep mine',
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w700)),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700)),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -245,11 +260,13 @@ class _ConflictCard extends StatelessWidget {
                           backgroundColor: const Color(0xFF6366F1),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 10),
                         ),
                         child: const Text('Use theirs',
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w700)),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ],

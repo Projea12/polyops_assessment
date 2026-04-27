@@ -5,8 +5,8 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../domain/entities/board_task.dart';
 import '../../../../domain/entities/task_status.dart';
-import '../../../../domain/repositories/i_task_repository.dart';
 import '../../../../domain/usecases/task/move_task_usecase.dart';
+import '../../../../domain/usecases/task/watch_board_tasks_usecase.dart';
 import 'board_event.dart';
 import 'board_state.dart';
 
@@ -15,10 +15,10 @@ export 'board_state.dart';
 
 @injectable
 class BoardBloc extends Bloc<BoardEvent, BoardState> {
-  final ITaskRepository _repository;
+  final WatchBoardTasksByStatusUseCase _watchBoardTasks;
   final MoveTaskUseCase _moveTask;
 
-  BoardBloc(this._repository, this._moveTask)
+  BoardBloc(this._watchBoardTasks, this._moveTask)
       : super(const BoardState.initial()) {
     on<LoadBoard>(_onLoadBoard, transformer: restartable());
     on<MoveTask>(_onMoveTask, transformer: sequential());
@@ -37,8 +37,7 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
 
     final merged = StreamGroup.merge(
       TaskStatus.values.map(
-        (s) => _repository
-            .watchBoardTasksByStatus(s)
+        (s) => _watchBoardTasks(s)
             .map<({TaskStatus status, List<BoardTask> tasks})>(
               (tasks) => (status: s, tasks: tasks),
             ),

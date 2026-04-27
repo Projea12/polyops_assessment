@@ -78,7 +78,9 @@ class DocumentRepository implements IDocumentRepository {
     // Fire async initialization without blocking DI resolution — keeping
     // init() synchronous ensures the full dependency chain registers as sync
     // factories, so getIt<DocumentBloc>() works without getAsync().
-    _initialize().ignore();
+    _initialize().catchError((Object e, StackTrace s) {
+      debugPrint('[DocumentRepository] async init failed: $e\n$s');
+    });
   }
 
   Future<void> _initialize() async {

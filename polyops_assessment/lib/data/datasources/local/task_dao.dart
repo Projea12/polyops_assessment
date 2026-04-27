@@ -113,6 +113,11 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         TasksTableCompanion(isPending: Value(isPending)),
       );
 
+  Future<void> touchTask(String id) =>
+      (update(tasksTable)..where((t) => t.id.equals(id))).write(
+        TasksTableCompanion(updatedAt: Value(DateTime.now())),
+      );
+
   Future<void> updateTaskField(String id, {String? title}) =>
       (update(tasksTable)..where((t) => t.id.equals(id))).write(
         TasksTableCompanion(

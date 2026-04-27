@@ -6,6 +6,7 @@ import 'package:polyops_assessment/presentation/task/board_screen.dart';
 import 'core/di/injection.dart';
 import 'core/observer/app_bloc_observer.dart';
 import 'presentation/documents/dashboard/document_dashboard_screen.dart';
+import 'presentation/sync/bloc/sync_bloc.dart';
 
 
 void main() async {
@@ -20,20 +21,23 @@ class Polysops extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Polysops',
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        FlutterQuillLocalizations.delegate,
-      ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1B5E37),
-          brightness: Brightness.light,
+    return BlocProvider<SyncBloc>(
+      create: (_) => getIt<SyncBloc>()..add(const SyncTriggered()),
+      child: MaterialApp(
+        title: 'Polysops',
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          FlutterQuillLocalizations.delegate,
+        ],
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1B5E37),
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
+        home: const _AppShell(),
       ),
-      home: const _AppShell(),
     );
   }
 }

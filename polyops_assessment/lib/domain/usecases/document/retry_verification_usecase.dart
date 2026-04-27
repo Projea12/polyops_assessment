@@ -5,7 +5,7 @@ import '../../entities/verification_document.dart';
 import '../../failures/failures.dart';
 import '../../repositories/i_document_repository.dart';
 
-@injectable
+@lazySingleton
 class RetryVerificationUseCase {
   final IDocumentRepository _repository;
   RetryVerificationUseCase(this._repository);

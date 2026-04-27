@@ -4,7 +4,7 @@ import '../../entities/connectivity_status.dart';
 import '../../entities/verification_document.dart';
 import '../../repositories/i_document_repository.dart';
 
-@injectable
+@lazySingleton
 class WatchDocumentUseCase {
   final IDocumentRepository _repository;
   WatchDocumentUseCase(this._repository);

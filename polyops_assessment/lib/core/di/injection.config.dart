@@ -36,6 +36,8 @@ import 'package:polyops_assessment/data/remote/i_remote_task_datasource.dart'
     as _i652;
 import 'package:polyops_assessment/data/remote/mock_remote_task_datasource.dart'
     as _i969;
+import 'package:polyops_assessment/data/remote/remote_task_datasource.dart'
+    as _i318;
 import 'package:polyops_assessment/data/repositories/document_repository.dart'
     as _i923;
 import 'package:polyops_assessment/data/repositories/task_repository.dart'
@@ -64,15 +66,26 @@ import 'package:polyops_assessment/domain/usecases/task/move_task_usecase.dart'
     as _i1065;
 import 'package:polyops_assessment/domain/usecases/task/update_task_usecase.dart'
     as _i67;
+import 'package:polyops_assessment/domain/usecases/task/watch_board_tasks_usecase.dart'
+    as _i84;
+import 'package:polyops_assessment/domain/usecases/task/watch_task_usecase.dart'
+    as _i506;
 import 'package:polyops_assessment/presentation/documents/bloc/document_bloc.dart'
     as _i761;
 import 'package:polyops_assessment/presentation/documents/detail/bloc/document_detail_bloc.dart'
     as _i838;
+import 'package:polyops_assessment/presentation/sync/bloc/sync_bloc.dart'
+    as _i293;
 import 'package:polyops_assessment/presentation/task/bloc/board_bloc.dart'
     as _i276;
+import 'package:polyops_assessment/presentation/task/bloc/task_detail_bloc.dart'
+    as _i899;
+import 'package:polyops_assessment/presentation/task/bloc/task_form_bloc.dart'
+    as _i807;
 
 const String _dev = 'dev';
 const String _test = 'test';
+const String _prod = 'prod';
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -82,12 +95,12 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
-    gh.singleton<_i788.AppDatabase>(() => _i788.AppDatabase());
     gh.lazySingleton<_i361.AuthTokenProvider>(() => _i361.AuthTokenProvider());
     gh.lazySingleton<_i895.Connectivity>(() => registerModule.connectivity);
     gh.lazySingleton<_i1005.FileProcessingService>(
       () => _i1005.FileProcessingService(),
     );
+    gh.lazySingleton<_i788.AppDatabase>(() => _i788.AppDatabase());
     gh.lazySingleton<_i652.IRemoteTaskDataSource>(
       () => _i969.MockRemoteTaskDataSource(),
       registerFor: {_dev, _test},
@@ -101,6 +114,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i562.TaskDao>(
       () => _i562.TaskDao(gh<_i788.AppDatabase>()),
     );
+    gh.lazySingleton<_i652.IRemoteTaskDataSource>(
+      () => _i318.RemoteTaskDataSource(gh<_i361.AuthTokenProvider>()),
+      registerFor: {_prod},
+    );
     gh.lazySingleton<_i392.DocumentApiService>(
       () => _i392.DocumentApiService(gh<_i361.AuthTokenProvider>()),
     );
@@ -110,15 +127,16 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i534.ConnectivityService>(
       () => _i534.ConnectivityService(gh<_i895.Connectivity>())..init(),
     );
+    gh.lazySingleton<_i361.ITaskRepository>(
+      () => _i765.TaskRepository(gh<_i562.TaskDao>(), gh<_i690.OutboxDao>()),
+    );
     gh.lazySingleton<_i298.ISyncService>(
       () => _i17.SyncService(
         gh<_i690.OutboxDao>(),
         gh<_i562.TaskDao>(),
         gh<_i652.IRemoteTaskDataSource>(),
-      ),
-    );
-    gh.lazySingleton<_i361.ITaskRepository>(
-      () => _i765.TaskRepository(gh<_i562.TaskDao>(), gh<_i690.OutboxDao>()),
+        gh<_i534.ConnectivityService>(),
+      )..init(),
     );
     gh.lazySingleton<_i147.IDocumentRepository>(
       () => _i923.DocumentRepository(
@@ -129,21 +147,22 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1005.FileProcessingService>(),
       )..init(),
     );
-    gh.factory<_i303.GetDocumentHistoryUseCase>(
+    gh.lazySingleton<_i303.GetDocumentHistoryUseCase>(
       () => _i303.GetDocumentHistoryUseCase(gh<_i147.IDocumentRepository>()),
     );
-    gh.factory<_i180.RetryVerificationUseCase>(
+    gh.lazySingleton<_i180.RetryVerificationUseCase>(
       () => _i180.RetryVerificationUseCase(gh<_i147.IDocumentRepository>()),
     );
-    gh.factory<_i881.UploadDocumentUseCase>(
+    gh.lazySingleton<_i881.UploadDocumentUseCase>(
       () => _i881.UploadDocumentUseCase(gh<_i147.IDocumentRepository>()),
     );
-    gh.factory<_i512.WatchAuditTrailUseCase>(
+    gh.lazySingleton<_i512.WatchAuditTrailUseCase>(
       () => _i512.WatchAuditTrailUseCase(gh<_i147.IDocumentRepository>()),
     );
-    gh.factory<_i921.WatchDocumentUseCase>(
+    gh.lazySingleton<_i921.WatchDocumentUseCase>(
       () => _i921.WatchDocumentUseCase(gh<_i147.IDocumentRepository>()),
     );
+    gh.factory<_i293.SyncBloc>(() => _i293.SyncBloc(gh<_i298.ISyncService>()));
     gh.factory<_i838.DocumentDetailBloc>(
       () => _i838.DocumentDetailBloc(
         gh<_i921.WatchDocumentUseCase>(),
@@ -166,15 +185,32 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i67.UpdateTaskUseCase>(
       () => _i67.UpdateTaskUseCase(gh<_i361.ITaskRepository>()),
     );
+    gh.lazySingleton<_i84.WatchBoardTasksByStatusUseCase>(
+      () => _i84.WatchBoardTasksByStatusUseCase(gh<_i361.ITaskRepository>()),
+    );
+    gh.lazySingleton<_i506.WatchTaskUseCase>(
+      () => _i506.WatchTaskUseCase(gh<_i361.ITaskRepository>()),
+    );
     gh.factory<_i761.DocumentBloc>(
       () => _i761.DocumentBloc(
         gh<_i921.WatchDocumentUseCase>(),
         gh<_i881.UploadDocumentUseCase>(),
       ),
     );
+    gh.factory<_i899.TaskDetailBloc>(
+      () => _i899.TaskDetailBloc(
+        gh<_i506.WatchTaskUseCase>(),
+        gh<_i67.UpdateTaskUseCase>(),
+        gh<_i621.DeleteTaskUseCase>(),
+        gh<_i294.AddCommentUseCase>(),
+      ),
+    );
+    gh.factory<_i807.TaskFormBloc>(
+      () => _i807.TaskFormBloc(gh<_i1.CreateTaskUseCase>()),
+    );
     gh.factory<_i276.BoardBloc>(
       () => _i276.BoardBloc(
-        gh<_i361.ITaskRepository>(),
+        gh<_i84.WatchBoardTasksByStatusUseCase>(),
         gh<_i1065.MoveTaskUseCase>(),
       ),
     );

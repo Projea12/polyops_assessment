@@ -9,6 +9,7 @@ import '../../data/datasources/local/task_dao.dart';
 import '../../data/remote/i_remote_task_datasource.dart';
 import '../../domain/entities/sync_conflict.dart';
 import '../../domain/entities/sync_result.dart';
+import '../connectivity/connectivity_service.dart';
 import 'i_sync_service.dart';
 
 @LazySingleton(as: ISyncService)
@@ -16,8 +17,10 @@ class SyncService implements ISyncService {
   final OutboxDao _outboxDao;
   final TaskDao _taskDao;
   final IRemoteTaskDataSource _remote;
+  final ConnectivityService _connectivity;
 
   bool _isSyncing = false;
+  StreamSubscription<bool>? _connectivitySub;
   final _conflictsController =
       StreamController<List<SyncConflict>>.broadcast();
   final List<SyncConflict> _conflicts = [];
@@ -29,7 +32,14 @@ class SyncService implements ISyncService {
   List<SyncConflict> get conflicts => List.unmodifiable(_conflicts);
   bool get hasPendingConflicts => _conflicts.isNotEmpty;
 
-  SyncService(this._outboxDao, this._taskDao, this._remote);
+  SyncService(this._outboxDao, this._taskDao, this._remote, this._connectivity);
+
+  @PostConstruct()
+  void init() {
+    _connectivitySub = _connectivity.onlineStream.listen((isOnline) {
+      if (isOnline) sync();
+    });
+  }
 
   @override
   Future<void> sync() async {
@@ -93,6 +103,7 @@ class SyncService implements ISyncService {
       jsonEncode(fields);
 
   void dispose() {
+    _connectivitySub?.cancel();
     _conflictsController.close();
   }
 }

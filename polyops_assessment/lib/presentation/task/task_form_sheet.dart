@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../domain/entities/task_priority.dart';
-import '../../../domain/usecases/task/create_task_usecase.dart';
+import 'bloc/task_form_bloc.dart';
 
 class TaskFormSheet extends StatelessWidget {
   const TaskFormSheet._();
@@ -16,7 +17,10 @@ class TaskFormSheet extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const TaskFormSheet._(),
+      builder: (_) => BlocProvider(
+        create: (_) => getIt<TaskFormBloc>(),
+        child: const TaskFormSheet._(),
+      ),
     );
   }
 
@@ -34,14 +38,12 @@ class _TaskFormContent extends StatefulWidget {
 }
 
 class _TaskFormContentState extends State<_TaskFormContent> {
-  final _createTask = getIt<CreateTaskUseCase>();
   final _titleController = TextEditingController();
   final _quillController = QuillController.basic();
   final _titleFocus = FocusNode();
 
   TaskPriority _priority = TaskPriority.medium;
   DateTime? _dueDate;
-  bool _isSubmitting = false;
 
   static const _green = Color(0xFF1B5E37);
 
@@ -102,104 +104,103 @@ class _TaskFormContentState extends State<_TaskFormContent> {
     });
   }
 
-  Future<void> _submit() async {
+  void _submit() {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       _titleFocus.requestFocus();
       return;
     }
-
-    setState(() => _isSubmitting = true);
-
-    final description = _quillController.document.toPlainText().trim();
-    final richDescription =
-        jsonEncode(_quillController.document.toDelta().toJson());
-
-    final result = await _createTask(
+    context.read<TaskFormBloc>().add(TaskFormSubmitted(
       title: title,
-      description: description,
-      richDescription: richDescription,
+      description: _quillController.document.toPlainText().trim(),
+      richDescription:
+          jsonEncode(_quillController.document.toDelta().toJson()),
       priority: _priority,
       dueDate: _dueDate,
-    );
-
-    if (!mounted) return;
-
-    result.fold(
-      (failure) {
-        setState(() => _isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(failure.message),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      },
-      (_) => Navigator.pop(context),
-    );
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
-      ),
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottom),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SheetHandle(),
-          const SizedBox(height: 4),
-          const Text(
-            'New Task',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _TitleField(
-                    controller: _titleController,
-                    focusNode: _titleFocus,
-                  ),
-                  const SizedBox(height: 20),
-                  _SectionLabel('Description'),
-                  const SizedBox(height: 8),
-                  _RichDescriptionField(controller: _quillController),
-                  const SizedBox(height: 20),
-                  _SectionLabel('Priority'),
-                  const SizedBox(height: 8),
-                  _PrioritySelector(
-                    selected: _priority,
-                    onChanged: (p) => setState(() => _priority = p),
-                  ),
-                  const SizedBox(height: 20),
-                  _SectionLabel('Due Date'),
-                  const SizedBox(height: 8),
-                  _DueDatePicker(
-                    selected: _dueDate,
-                    onTap: _pickDueDate,
-                    onClear: () => setState(() => _dueDate = null),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+    return BlocListener<TaskFormBloc, TaskFormState>(
+      listener: (context, state) {
+        if (state is TaskFormSuccess) Navigator.pop(context);
+        if (state is TaskFormFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(state.message),
+            backgroundColor: Colors.red.shade700,
+          ));
+        }
+      },
+      child: BlocBuilder<TaskFormBloc, TaskFormState>(
+        builder: (context, state) {
+          final isSubmitting = state is TaskFormSubmitting;
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.92,
             ),
-          ),
-          _SubmitButton(
-            isLoading: _isSubmitting,
-            canSubmit: _canSubmit,
-            onPressed: _submit,
-          ),
-        ],
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottom),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SheetHandle(),
+                const SizedBox(height: 4),
+                const Text(
+                  'New Task',
+                  style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _TitleField(
+                          controller: _titleController,
+                          focusNode: _titleFocus,
+                        ),
+                        const SizedBox(height: 20),
+                        _SectionLabel('Description'),
+                        const SizedBox(height: 8),
+                        _RichDescriptionField(
+                            controller: _quillController),
+                        const SizedBox(height: 20),
+                        _SectionLabel('Priority'),
+                        const SizedBox(height: 8),
+                        _PrioritySelector(
+                          selected: _priority,
+                          onChanged: (p) =>
+                              setState(() => _priority = p),
+                        ),
+                        const SizedBox(height: 20),
+                        _SectionLabel('Due Date'),
+                        const SizedBox(height: 8),
+                        _DueDatePicker(
+                          selected: _dueDate,
+                          onTap: _pickDueDate,
+                          onClear: () =>
+                              setState(() => _dueDate = null),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+                _SubmitButton(
+                  isLoading: isSubmitting,
+                  canSubmit: _canSubmit && !isSubmitting,
+                  onPressed: _submit,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

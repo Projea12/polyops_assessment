@@ -5,7 +5,7 @@ import '../../entities/verification_document.dart';
 import '../../failures/failures.dart';
 import '../../repositories/i_document_repository.dart';
 
-@injectable
+@lazySingleton
 class GetDocumentHistoryUseCase {
   final IDocumentRepository _repository;
   GetDocumentHistoryUseCase(this._repository);

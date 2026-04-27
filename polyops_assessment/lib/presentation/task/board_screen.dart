@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:polyops_assessment/core/sync/sync_service.dart';
-import 'package:polyops_assessment/presentation/task/conflict_resolution_sheet.dart';
-import 'package:polyops_assessment/presentation/task/task_form_sheet.dart';
+
 import '../../../core/di/injection.dart';
-import '../../../domain/entities/sync_conflict.dart';
 import '../../../domain/entities/task_status.dart';
+import '../sync/bloc/sync_bloc.dart';
 import 'bloc/board_bloc.dart';
 import 'board_column.dart';
+import 'conflict_resolution_sheet.dart';
+import 'task_form_sheet.dart';
 
 
 class BoardScreen extends StatefulWidget {
@@ -19,13 +19,10 @@ class BoardScreen extends StatefulWidget {
 
 class _BoardScreenState extends State<BoardScreen>
     with WidgetsBindingObserver {
-  final _syncService = getIt<SyncService>();
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _syncService.sync());
   }
 
   @override
@@ -36,7 +33,9 @@ class _BoardScreenState extends State<BoardScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _syncService.sync();
+    if (state == AppLifecycleState.resumed) {
+      context.read<SyncBloc>().add(const SyncTriggered());
+    }
   }
 
   @override
@@ -102,7 +101,6 @@ class _BoardAppBar extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo mark
               Container(
                 width: 36,
                 height: 36,
@@ -148,7 +146,7 @@ class _BoardAppBar extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              _ConflictBadgeButton(),
+              const _ConflictBadgeButton(),
               const SizedBox(width: 8),
               _AddTaskButton(),
             ],
@@ -163,8 +161,7 @@ class _BoardAppBar extends StatelessWidget {
                   state.tasksFor(TaskStatus.inProgress).length;
               final done = state.tasksFor(TaskStatus.done).length;
               final total = todo + inProgress + done;
-              final pct =
-                  total == 0 ? 0.0 : done / total;
+              final pct = total == 0 ? 0.0 : done / total;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -299,17 +296,13 @@ class _ProgressBar extends StatelessWidget {
 }
 
 class _ConflictBadgeButton extends StatelessWidget {
-  final _syncService = getIt<SyncService>();
-
-  _ConflictBadgeButton();
+  const _ConflictBadgeButton();
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<SyncConflict>>(
-      stream: _syncService.conflictsStream,
-      initialData: _syncService.conflicts,
-      builder: (context, snapshot) {
-        final count = snapshot.data?.length ?? 0;
+    return BlocBuilder<SyncBloc, SyncState>(
+      builder: (context, state) {
+        final count = state.conflicts.length;
         if (count == 0) return const SizedBox.shrink();
         return GestureDetector(
           onTap: () => ConflictResolutionSheet.show(context),

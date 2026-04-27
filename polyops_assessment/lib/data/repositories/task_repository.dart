@@ -286,6 +286,9 @@ class TaskRepository implements ITaskRepository {
         timestamp: now,
       ));
 
+      // Touch the task so watchTask stream re-emits with fresh comments
+      await _dao.touchTask(taskId);
+
       return right(Comment(
         id: id,
         taskId: taskId,

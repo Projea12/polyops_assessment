@@ -6,7 +6,7 @@ import '../../entities/verification_document.dart';
 import '../../failures/failures.dart';
 import '../../repositories/i_document_repository.dart';
 
-@injectable
+@lazySingleton
 class UploadDocumentUseCase {
   final IDocumentRepository _repository;
   UploadDocumentUseCase(this._repository);
