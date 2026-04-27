@@ -1,0 +1,14 @@
+import 'package:fpdart/fpdart.dart' hide Task;
+import 'package:injectable/injectable.dart';
+import 'package:polyops_assessment/domain/failure/failures.dart';
+import '../../entities/verification_document.dart';
+import '../../repositories/i_document_repository.dart';
+
+@injectable
+class GetDocumentHistoryUseCase {
+  final IDocumentRepository _repository;
+  GetDocumentHistoryUseCase(this._repository);
+
+  Future<Either<Failure, List<VerificationDocument>>> call() =>
+      _repository.getDocumentHistory();
+}

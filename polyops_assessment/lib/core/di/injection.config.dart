@@ -18,9 +18,9 @@ import 'package:polyops_assessment/data/datasources/local/outbox_dao.dart'
     as _i690;
 import 'package:polyops_assessment/data/datasources/local/task_dao.dart'
     as _i562;
-import 'package:polyops_assessment/data/remote/i_remote_task_datasource.dart'
+import 'package:polyops_assessment/domain/remote/i_remote_task_datasource.dart'
     as _i652;
-import 'package:polyops_assessment/data/remote/mock_remote_task_datasource.dart'
+import 'package:polyops_assessment/domain/remote/mock_remote_task_datasource.dart'
     as _i969;
 import 'package:polyops_assessment/data/repositories/task_repository.dart'
     as _i765;

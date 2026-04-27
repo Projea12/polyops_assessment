@@ -6,7 +6,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../data/datasources/local/outbox_dao.dart';
 import '../../data/datasources/local/task_dao.dart';
-import '../../data/remote/i_remote_task_datasource.dart';
+import '../../domain/remote/i_remote_task_datasource.dart';
 import '../../domain/entities/sync_conflict.dart';
 import '../../domain/entities/sync_result.dart';
 
