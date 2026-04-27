@@ -543,3 +543,363 @@ BLoCs receive `Either<Failure, T>` from usecases, never raw exceptions. The seam
 There is no enforcement that BLoC events are the only mutation path into repositories. `injectable` makes `ITaskRepository` resolvable anywhere in the widget tree. A new developer can call `saveTask()` from a widget, bypass the BLoC, and produce inconsistent UI state with no warning. A production codebase would scope repository registration to prevent direct widget access.
 
 **Honest gap across all four:** none of these boundaries are self-documenting at the interface definition. A new developer currently finds them by reading the implementation carefully or hitting the bug in testing.
+
+
+
+
+#### Offline Functionality
+
+#### 1. How would you queue document uploads when offline? Describe your priority model, retry logic, and partial upload recovery.
+Tasks and documents handle offline writes differently, and that difference is the problem. An offline task edit is saved locally via TaskRepository → OutboxTable → SyncService drain on connectivity. The user never loses work. An offline document upload in DocumentRepository.uploadDocument() writes an optimistic row, fails the API call, deletes the optimistic row, and returns left(CacheFailure). The user loses the upload silently with no indication it was dropped. The fix is not a new queue system — it is extending the outbox pattern that already works for tasks to cover document uploads.
+
+What the extension looks like:
+
+DocumentUploadQueueTable added to AppDatabase — same singleton connection, same Drift reactive infrastructure. Columns: id, filePath, checksum, documentType, attemptCount, nextRetryAt, createdAt. No priority tiers. Two ordering rules: new uploads before retries, FIFO within each group. The reason priority tiers are unnecessary: document upload has no multi-user race. The only priority question that matters is whether a retrying failed upload should block a fresh one — it should not, so retries sort after new entries by attemptCount DESC, createdAt ASC.
+
+Optimistic row lifecycle change:
+
+Currently the optimistic row is deleted on any API failure. With the queue, the row stays alive with isOptimistic: true displaying a "pending upload" badge. It is not deleted until the entry either confirms from the server or exhausts retries. On server confirmation, the optimistic row is replaced with the confirmed row in a single Drift transaction — same atomic swap already in uploadDocument(). On permanent failure (attempt 4), the row transitions to rejectionReason: 'Upload failed — tap to retry' — the same path _markUploadIncomplete uses today for heartbeat-detected failures. The dashboard never shows a blank — the document is always visible in some state.
+
+Retry logic:
+
+Exponential backoff following the pattern already in DocumentRepository._checkHeartbeats(): 30s → 60s → 120s → 240s → capped at 300s. nextRetryAt persists in the queue row so backoff survives app restarts. At attempt 4 the entry is marked failed and surfaced to the user. The queue processor reads WHERE nextRetryAt <= now() before picking the next entry — no timer drift, no missed retries after restart.
+
+Partial upload recovery — the real risk is idempotency, not file integrity:
+
+FileProcessingService already compresses and checksums the file before the upload attempt. The checksum is already stored in DocumentsTable. The file corruption scenario is not the primary concern.
+
+The real risk: the upload HTTP request completes on the server, the server creates the document record, but the app is killed before the response is processed. On restart the queue still has the entry at attemptCount = 0. The retry sends the same file again. Without an idempotency key the server creates a duplicate document.
+
+The fix: include the checksum as an idempotency key in the upload request header. The server deduplicates on checksum — a second upload of the same file returns the existing document record rather than creating a new one. The client processes it identically either way.
+
+App-kill mid-upload:
+
+On DocumentRepository.init(), scan queue rows with status = uploading. These were in-flight when the app was killed. Reset to status = queued, preserve attemptCount, set nextRetryAt = DateTime.now() for immediate retry on next connectivity event. Without this scan, killed uploads are permanently stuck.
+
+Queue drain trigger:
+
+DocumentRepository.init() already subscribes to ConnectivityService.onlineStream. The queue processor drains on isOnline = true — the same trigger SyncService.init() uses for the task outbox. No new infrastructure needed.
+
+#### 2. How would you handle task sync conflicts — for example, when a user edits a task offline while another user edits the same task online?
+
+
+
+What actually causes a conflict — the question the implementation must answer first:
+
+A conflict occurs when two writes target the same field of the same task at overlapping times. Detecting this requires the server to know the task version the client was editing against. Without a version field or vector clock on every task, the server cannot distinguish "first write" (safe) from "conflicting write" (needs resolution). The current mock implementation in MockRemoteTaskDataSource returns SyncConflicted by simulation — in production, every task needs a serverVersion field, every outbox entry carries the baseVersion the client edited against, and the server rejects writes where baseVersion != currentVersion. This is the foundation everything else depends on.
+
+The conflict lifecycle — what is implemented:
+
+When online, SyncService._doSync() reads pending entries from OutboxDao.getPendingEntries() and calls IRemoteTaskDataSource.applyOperation() for each. On SyncConflicted, the conflict is added to _conflicts and emitted on _conflictsController. SyncBloc receives it via emit.forEach on _onStarted, updates SyncState.conflicts, and _ConflictBadgeButton in BoardScreen shows the count. The user opens ConflictResolutionSheet, sees local and server values with actor name and timestamps, and chooses keep-local or accept-server. ConflictResolved dispatches to SyncBloc which calls ISyncService.resolveConflict().
+
+The outbox ordering problem:
+
+If a user edits a task offline three times, the outbox has three entries processed in order. If entry 2 conflicts, _doSync() continues and processes entry 3 — which may apply a local value on top of an unresolved conflict, making the conflict resolution meaningless. The fix: when SyncConflicted is returned for a task, skip all remaining outbox entries for that taskId in the current sync cycle. Only resume them after the conflict is resolved:
+
+
+final blockedTaskIds = <String>{};
+for (final entry in entries) {
+  if (blockedTaskIds.contains(entry.taskId)) continue;
+  final result = await _remote.applyOperation(entry);
+  switch (result) {
+    case SyncConflicted(:final conflict):
+      blockedTaskIds.add(entry.taskId);
+      // add to _conflicts...
+  }
+}
+The known data corruption bug in resolveConflict:
+
+
+if (!keepLocal) {
+  await _taskDao.updateTaskField(conflict.taskId, title: conflict.serverValue);
+}
+updateTaskField hardcodes title regardless of conflict.fieldName. A conflict on description, priority, or status silently applies serverValue to the title field. The fix dispatches on fieldName:
+
+
+if (!keepLocal) {
+  switch (conflict.fieldName) {
+    case 'title':       await _taskDao.updateTaskField(conflict.taskId, title: conflict.serverValue);
+    case 'description': await _taskDao.updateTaskField(conflict.taskId, description: conflict.serverValue);
+    case 'priority':    await _taskDao.updateTaskField(conflict.taskId, priority: conflict.serverValue);
+    case 'status':      await _taskDao.updateTaskField(conflict.taskId, status: conflict.serverValue);
+  }
+}
+The resolution-during-sync race:
+
+_isSyncing in SyncService prevents concurrent sync cycles. But the user can resolve a conflict while a sync cycle is running — markSyncedForTask writes to OutboxTable while _doSync() may be reading the same entries. The fix: resolve conflict only queues the resolution. The actual markSyncedForTask runs at the start of the next sync cycle, after _isSyncing is released. This keeps all outbox mutations inside the sync cycle boundary.
+
+The cross-tab visibility problem:
+
+_ConflictBadgeButton lives in BoardScreen. A user on the document tab never sees it. SyncBloc is app-root scoped — it has the conflict count available everywhere. The fix is a persistent banner driven by SyncBloc in _AppShell, visible across both tabs, that disappears only when conflicts.isEmpty.
+
+Why last-write-wins with user choice is the right model:
+
+Automatic merging of task fields produces nonsensical results — "Buy milkFix bug" merged from two title edits is worse than asking the user. Operational transform is correct for collaborative text editors, not for structured task fields with discrete values. The user-choice model is the right trade-off for this domain. The system surfaces enough context — both values, the server actor name, timestamps — for the user to make an informed decision.
+
+
+#### 3.
+
+"Offline" is not binary in this codebase — the answer depends on which transition:
+
+ConnectivityStatus has three states produced exclusively by DocumentRepository: live (WebSocket connected), heartbeat (WebSocket dead, HTTP reachable), offline (HTTP unreachable or reachability probe failed). The correct question is not "what works offline" but what degrades at each transition, and what the user experiences at each state.
+
+live → heartbeat: WebSocket dead, HTTP alive
+
+Task feature: No change. The task feature has no WebSocket dependency. SyncService uses HTTP only. All task operations — create, edit, delete, move, comment — continue exactly as in the live state. The user sees no difference.
+
+Document feature: Real-time status updates stop. _onWsStateChange receives WebSocketState.failed and emits ConnectivityStatus.heartbeat. The connectivity banner in DocumentDashboardScreen transitions from live to heartbeat indicator. Critically, _checkHeartbeats() takes over — per-document GET polling fires every 5 seconds for non-terminal documents. From the user's perspective, status updates continue arriving but with higher latency. New uploads still work — uploadDocument() calls _api.uploadDocument() over HTTP which remains reachable. Retry verification works. The document feature is functionally intact at heartbeat — slower, not broken.
+
+heartbeat → offline: HTTP unreachable
+
+Task feature — degrades gracefully:
+
+Every user action still works. Create, edit, delete, move, comment all write to TasksTable and OutboxTable in a single Drift transaction. The board re-renders immediately from the Drift watcher. isPending = true is set on the task, surfaced as a pending indicator on the card.
+
+What the user does not know: The task board has no connectivity banner. A user working on the task tab has no indication their edits are queued. The pending indicator on the card is the only signal — and only for tasks they have edited. This is a degradation failure: the feature works but the user is not informed. The fix is a connectivity indicator in _AppShell driven by SyncBloc, visible across both tabs.
+
+Document feature — degrades partially:
+
+The dashboard reads from DocumentsTable via DocumentDao.watchAll() — a local Drift watcher. Previously uploaded documents are visible with their last-known status. The connectivity banner transitions to offline.
+
+What stops working specifically:
+
+New uploads fail. uploadDocument() writes the optimistic row then calls _api.uploadDocument(). The API call throws, the optimistic row is deleted, the upload is lost — this is the gap Q1 addresses.
+Heartbeat polling stops. _checkHeartbeats() checks if (!_connectivity.isOnline) return as its first line. A document mid-verification freezes at its last-known progress value with no indication of when it will resume.
+Retry verification fails. Same path as new uploads — HTTP unreachable means the retry call throws immediately.
+Audit trail becomes read-only. watchAuditTrail() reads DocumentAuditTable locally — existing entries are visible but no new transitions can be written because server confirmation is required.
+Recovery — the transition back matters as much as the degradation:
+
+Task feature: SyncService.init() subscribes to ConnectivityService.onlineStream. When isOnline becomes true, sync() drains the outbox automatically. The board updates reactively as setTaskPending(false) writes trigger Drift watchers. The user sees their queued edits confirm without any manual action. Conflicts surface in SyncState.conflicts and the badge appears. Recovery is automatic and complete.
+
+Document feature: DocumentRepository._onConnectivityChange receives the isOnline event and calls _probeAndConnect() — which probes the API before trusting connectivity, catching captive portals. On confirmed reachability, _ws.connect() is called. _onWsStateChange receives WebSocketState.connected, emits ConnectivityStatus.live, and resets all _lastSeenAt timestamps so the WebSocket gets a fresh 15-second window before heartbeat fires redundant GETs. Documents that were mid-verification when connectivity dropped resume receiving updates immediately — no restart required, no status lost.
+
+The honest asymmetry and why it exists:
+
+The task feature is fully offline-capable because the outbox decouples the write from the sync — local state is the source of truth. The document feature is only partially offline-capable because verification is a server-side process — OCR, identity checks, compliance validation cannot run locally. The upload can be deferred offline (Q1's queue), but verification always requires a live connection. That is not an architectural flaw — it is the correct boundary between what belongs on the client and what belongs on the server.
+
+
+#### Security
+
+Security Q1: Document encryption at rest and in transit
+
+The pipeline question — encryption must fit the existing data flow without breaking it:
+
+FileProcessingService.process() already does three things in order: compress → checksum → return ProcessedFile. The encryption decision depends on where in this pipeline it lands, and the order is not arbitrary.
+
+Checksum must be computed before encryption. The checksum serves two purposes in this codebase: deduplication in DocumentsTable and idempotency on retry in uploadDocument(). If the checksum is computed after encryption, two uploads of the same file with different IVs produce different checksums — idempotency breaks. If computed before encryption, the checksum is stable across retries regardless of IV. The correct pipeline: compress → checksum → encrypt → store. FileProcessingService stores the pre-encryption checksum. The encrypted file is what lives on disk.
+
+The server receives decrypted bytes — always. The server runs OCR, identity verification, and compliance checks on the document content. Sending encrypted bytes means the server processes noise. The decryption happens immediately before the multipart upload in DocumentApiService.uploadDocument() — decrypt to a memory buffer, stream directly into the HTTP request body, never write the decrypted bytes to disk. The encrypted file on disk is the only persistent form. The memory buffer is garbage collected when the request completes.
+
+retryVerification() re-reads filePath — this path must be transparent. DocumentRepository.retryVerification() calls _api.uploadDocument(filePath: retrying.filePath, ...) which passes the path to DocumentApiService. The decryption must happen inside DocumentApiService at upload time, not at the repository layer. The repository layer never sees raw bytes — it passes paths. This keeps decryption contained to the network boundary, consistent with how DTO mapping is contained inside the repository boundary.
+
+filePath in plaintext is a partial risk. An attacker with filesystem access who sees /data/user/0/com.app/documents/uuid.enc learns that a document exists but cannot read it. The filename itself leaks nothing — UUIDs are opaque. The real risk is DocumentsTable in plaintext: originalName (passport_john.jpg), type (PASSPORT), status, rejectionReason — these fields reveal sensitive information even without the file content. The database needs encryption independently of the files.
+
+At rest — two separate encryption concerns:
+
+Database: Replace NativeDatabase.createInBackground in AppDatabase with SQLCipher via sqlcipher_flutter_libs. The entire swamp.db file is AES-256 encrypted. The key is retrieved from flutter_secure_storage — iOS Keychain with kSecAttrAccessibleWhenUnlockedThisDeviceOnly, Android Keystore with hardware-backed storage. On first launch a random 256-bit key is generated and stored. The key is passed to SQLCipher via PRAGMA key immediately after connection — it never persists in Dart memory beyond that call. This is a contained change to _openConnection() in app_database.dart — nothing above the database layer changes.
+
+Files: AES-256-GCM via the encrypt package. A separate file encryption key is derived from the master key using HKDF — the same master key, different derived keys for database and files, so compromising one does not compromise the other. The IV is randomly generated per file and prepended to the encrypted file on disk. FileProcessingService encrypts as the final step after checksumming. DocumentApiService decrypts to a memory buffer at upload time. retryVerification() works unchanged — it passes paths, decryption is transparent at the API service layer.
+
+In transit — the question the codebase must answer before TLS:
+
+DocumentApiService and DocumentWebSocketService assume HTTPS and WSS but enforce nothing in code. The real question is not whether to use TLS — that is mandatory — but what happens when TLS is present but the certificate is wrong.
+
+A KYC app is a high-value MITM target. An attacker who can install a trusted CA on the device — corporate MDM, malware, user error — can intercept HTTPS silently. Certificate pinning rejects any TLS handshake that does not present the known server public key, regardless of whether the device trusts the signing CA.
+
+What pinning breaks in this codebase: DocumentWebSocketService reconnects automatically with exponential backoff. If the server rotates its certificate during a reconnection cycle, all clients with the old pin stop connecting permanently until the app updates. The mitigation is pinning the CA public key not the leaf certificate, with a backup pin already deployed before rotation begins. The DocumentWebSocketService reconnection logic already handles transient failures — a pin mismatch surfaces as a connection failure and triggers the same backoff path, which is correct behavior during rotation.
+
+The decrypted temp file window: The only moment unencrypted document bytes exist outside secure memory is during the multipart HTTP upload. The request streams bytes from the decryption buffer directly — no temp file written. If the upload is interrupted mid-stream, the buffer is garbage collected. The encrypted file on disk is never touched during the upload. This window is as narrow as the network layer allows.
+
+The key management question is harder than the encryption itself — and that is Q2. The answer here deliberately stops at key retrieval from flutter_secure_storage because how those keys are generated, rotated, and recovered on device migration is a separate system with its own failure modes.
+
+#### Security Q2: Encryption key management on Android and iOS
+
+The question that must be answered before key management:
+
+Who owns the key — the device or the user — and what does the compliance context require?
+
+For a KYC app this is not a technical question first. It is a legal question. GDPR Article 9 classifies biometric data and identity documents as special category data. The applicable regulation determines:
+
+Whether local caching of KYC documents is permitted at all
+Who can decrypt and under what circumstances
+Whether key escrow is required for legal hold or compliance audit
+How long keys must be retained and when they must be destroyed
+A device-bound key — Secure Enclave on iOS, StrongBox on Android — means only the device can decrypt. A compliance audit requiring document access cannot be satisfied. A legal hold requiring preservation of a specific user's documents cannot be enforced if the key lives only in hardware on their phone. These are not edge cases — they are foreseeable requirements for any regulated KYC pipeline.
+
+The architecture that follows from the compliance context:
+
+Local files are a cache, not the source of truth. The server holds the documents. Local encryption protects one specific threat: a stolen unlocked device where an attacker reads the filesystem. It does not protect against a compromised server, a malicious insider, or a legal disclosure requirement.
+
+This means the correct key architecture is:
+
+Server-side encryption for the documents themselves — the server encrypts at rest with keys it controls, auditable, rotatable, subject to legal hold
+Local encryption is a cache protection layer only — protects the temporary local copy against device theft, not a primary security control
+Local keys are ephemeral by design — losing them means re-downloading from the server, not data loss
+This changes what local key management needs to solve. It does not need backup, recovery, or escrow — because the server is the recovery path.
+
+Sensitivity classification — not all fields are equal:
+
+DocumentsTable contains fields of different sensitivity. Encrypting everything the same way is not thinking in systems:
+
+Field	Sensitivity	Reason
+status, progress, estimatedProcessingTime	Low	Operational, no PII
+filePath, checksum	Medium	Reveals document existence
+type, originalName, rejectionReason	High	Directly identifies person and KYC outcome
+The files themselves	Critical	Biometric data — GDPR Article 9
+The database encryption strategy follows this classification:
+
+SQLCipher encrypts the entire swamp.db — all fields encrypted at rest, no field-level decisions needed at the Drift layer
+Files encrypted separately with AES-256-GCM — different derived key from the same master, so database compromise does not expose files
+Two-layer key architecture — separation of wrapping from encryption:
+
+A single key encrypting all data creates an unrotatable system. The correct structure:
+
+Key Encryption Key (KEK): lives in hardware — iOS Secure Enclave via Keychain, Android StrongBox or TEE via Keystore. Never touches Dart memory. Used only to wrap and unwrap the DEK.
+Data Encryption Key (DEK): random 256-bit key generated on first launch. Wrapped by the KEK, stored in flutter_secure_storage. Decrypted at runtime only when needed, held in memory for the duration of the operation, released immediately after.
+Key rotation re-wraps the DEK with a new KEK — files and database are untouched. Rotation is fast regardless of how many documents are cached locally.
+
+iOS — Keychain with Secure Enclave:
+
+
+const storage = FlutterSecureStorage(
+  iOptions: IOSOptions(
+    accessibility: KeychainAccessibility.unlocked_this_device,
+    synchronizable: false,
+  ),
+);
+unlocked_this_device: key is inaccessible when device is locked, does not transfer to a new device, is wiped on device transfer even with encrypted backup. synchronizable: false: prevents iCloud Keychain sync — key is bound to one physical device.
+
+What breaks and how the system recovers: Restoring an encrypted backup to a new device restores encrypted files but not the KEK. On first launch the app detects a missing KEK in DocumentRepository.init() — not at the point of decryption where it would surface as a cryptographic exception to the UI. Detection at init triggers a re-download flag. The user sees "re-syncing your documents" not a crash. The encrypted local files are deleted. Fresh copies are downloaded from the server and re-encrypted with a new KEK and DEK.
+
+Android — Keystore with hardware binding:
+
+
+const storage = FlutterSecureStorage(
+  aOptions: AndroidOptions(
+    encryptedSharedPreferences: true,
+  ),
+);
+On devices with StrongBox (dedicated security chip), the KEK is hardware-bound and never extractable. On TEE-only devices the KEK is software-emulated within the trusted execution environment — weaker but inaccessible to the normal OS.
+
+The biometric invalidation problem: Android invalidates Keystore keys when new biometrics are enrolled — KeyPermanentlyInvalidatedException at the point of key access. This must be caught in DocumentRepository.init(), not propagated to the UI. On catching it: delete wrapped DEK, generate new KEK and DEK, trigger server re-download. Same recovery path as device migration — the system has one recovery mechanism for all key loss scenarios.
+
+App reinstall: Android Keystore key is deleted on uninstall. Same recovery path on reinstall.
+
+The single recovery path for all key loss scenarios:
+
+Device migration, app reinstall, biometric invalidation, key corruption — all resolve identically:
+
+Detect missing or invalid KEK in DocumentRepository.init()
+Delete local encrypted files
+Generate new KEK and DEK
+Set re-download flag in SyncMetaTable
+On next authentication, re-download documents from server
+Re-encrypt with new keys
+One recovery path, all failure modes. This is the system property that makes the key management tractable — because the server is the source of truth, key loss is cache invalidation, not catastrophe.
+
+What this architecture cannot solve:
+
+If the server is compromised, local encryption provides no protection — the attacker has the plaintext before it reaches the device. Server-side encryption with proper key management, access controls, and audit logging is outside the scope of the mobile client but is the higher-value security control for a KYC pipeline.
+
+#### Security Q3: Audit trail for compliance
+
+
+A compliance audit trail is not a log. It is a legal record. The difference is tamper-evidence. A log that can be modified after the fact is not admissible as evidence of what happened. For KYC under AML regulations and GDPR Article 30 (records of processing activities), the audit trail must satisfy:
+
+Completeness: every access, every status change, every retry, every rejection — recorded
+Tamper-evidence: an entry written cannot be modified or deleted without detection
+Attribution: every entry identifies who performed the action — user, system process, or third-party verifier
+Retention: minimum 5 years under most AML frameworks — the trail outlives the document itself
+Queryability: a compliance officer or regulator can retrieve the full history of a specific document or user without touching production data
+Separation: the audit trail is not stored in the same system it audits — a compromised application database must not compromise the audit record simultaneously
+What is currently implemented — and where it fails each requirement:
+
+DocumentAuditTable exists in AppDatabase. DocumentRepository._persistUpdate() writes an entry on every status transition:
+
+
+await _dao.insertAuditEntry(
+  DocumentAuditTableCompanion.insert(
+    id: _uuid.v4(),
+    documentId: updated.id,
+    fromStatus: previous.status.apiValue,
+    toStatus: updated.status.apiValue,
+    note: ...,
+    timestamp: DateTime.now(),
+  ),
+);
+watchAuditTrail() surfaces it to DocumentDetailBloc for the UI.
+
+Against compliance requirements:
+
+Requirement	Current state
+Status changes	Recorded
+Document access (who viewed)	Not recorded
+Upload attempts	Partially — audit entry on confirmation, not on attempt
+Retry events	Recorded via 'Manual retry' note
+App-kill incomplete uploads	Recorded via _markUploadIncomplete
+Tamper-evidence	Fails — same database, writable, deletable
+Attribution	Fails — no actor recorded, no user identity
+Retention	Fails — deleted with app, no retention policy
+Queryability by compliance officer	Fails — device-local, no server-side queryability
+Separation from audited system	Fails — same swamp.db
+The tamper-evidence problem — the hardest requirement:
+
+An audit trail in the same database as the data it audits can be modified by anyone with database write access — which includes the application itself. DocumentDao has unrestricted write access to DocumentAuditTable. A bug, a malicious actor, or a compromised dependency could silently alter entries.
+
+The correct architecture has two components:
+
+Local append-only log: DocumentAuditTable becomes append-only by convention — DocumentDao exposes only insertAuditEntry, never update or delete methods on this table. Drift enforces nothing at the database level, so this is a DAO boundary enforced by code review. For stronger enforcement, a database trigger on DocumentAuditTable that prevents UPDATE and DELETE — implemented as a customStatement in AppDatabase.onCreate:
+
+
+await customStatement('''
+  CREATE TRIGGER prevent_audit_modification
+  BEFORE UPDATE ON document_audit
+  BEGIN SELECT RAISE(ABORT, 'Audit entries are immutable'); END;
+''');
+await customStatement('''
+  CREATE TRIGGER prevent_audit_deletion
+  BEFORE DELETE ON document_audit
+  BEGIN SELECT RAISE(ABORT, 'Audit entries cannot be deleted'); END;
+''');
+This makes the local table append-only at the SQLite level — the application cannot modify entries even if the code tries to.
+
+Server-side audit ledger: Every audit entry written locally is also posted to a server-side audit endpoint — a separate service from the document API, with write-only access from the mobile client. The server stores entries in an append-only ledger — AWS QLDB, Azure Immutable Blob Storage, or a Merkle-chained log. The client cannot read from this endpoint, cannot modify entries, and cannot delete them. The compliance officer queries the server-side ledger, not the device. Device-local entries are for the user's own view of their document history.
+
+Chaining for tamper-detection: Each audit entry includes a hash of the previous entry — previousHash: sha256(previousEntry). A gap or modification in the chain is detectable on verification. This is the same principle as a blockchain without the decentralisation overhead. DocumentRepository._persistUpdate() retrieves the last entry's hash before inserting the new one:
+
+
+final lastHash = await _dao.getLastAuditHash(documentId);
+await _dao.insertAuditEntry(
+  DocumentAuditTableCompanion.insert(
+    ...
+    previousHash: Value(lastHash),
+    entryHash: Value(sha256(id + documentId + fromStatus + toStatus + timestamp + lastHash)),
+  ),
+);
+Attribution — who performed the action:
+
+DocumentAuditTable currently records no actor. For compliance, every entry must identify:
+
+For user-initiated actions (upload, retry): the authenticated user ID from AuthTokenProvider
+For system actions (heartbeat status update, app-kill recovery): a system actor identifier ('system:heartbeat', 'system:recovery')
+For server-initiated changes (WebSocket status push): the server actor, carried in the WebSocketMessageDto and stored in the audit entry
+DocumentAuditTable needs an actorId and actorType column. _persistUpdate() receives the actor context from its caller — _onWsBatch passes the server actor, _checkHeartbeats passes system actor, uploadDocument passes the authenticated user.
+
+What gets audited — completeness gap:
+
+Status transitions are audited. These are not:
+
+Document access: when watchDocument() or getDocumentStatus() is called — who viewed the document and when. For GDPR Article 15 (right of access) and compliance audit, access events are as important as modification events.
+Upload attempts: the optimistic row is written before the API call but no audit entry is written until server confirmation. A failed upload attempt — including offline failures — leaves no audit record.
+Key access events: when the DEK is retrieved to decrypt a document file — this is an access event that should be audited independently of document status changes.
+The fix for upload attempts: write an audit entry at the point the optimistic row is created — fromStatus: 'NONE', toStatus: 'PENDING', actorType: 'user' — before the API call. If the upload fails, a second entry records the failure. The audit trail shows the attempt regardless of outcome.
+
+Retention — the policy the app does not implement:
+
+Local DocumentAuditTable has no retention policy. Entries accumulate indefinitely. For compliance, two policies apply:
+
+Minimum retention: 5 years under AML — entries must not be deleted before this period
+Maximum retention: GDPR right to erasure — when a user requests deletion, personal data must be removed
+These two requirements conflict: AML requires retention, GDPR requires erasure. The resolution: AML obligations override GDPR erasure rights for the retention period in most jurisdictions. After the AML retention period expires, GDPR erasure applies. The app must implement a retention scheduler — a background check in DocumentRepository.init() that marks entries older than the retention period for server-side archival, and purges them from the local database after archival confirmation.
+
+Honest gap: The local append-only enforcement via SQLite triggers, the chained hash entries, the server-side audit ledger, the actor attribution columns, the access event logging, and the retention scheduler are not implemented. DocumentAuditTable records status transitions correctly — that is the foundation. Everything above it is what a production compliance implementation requires.
