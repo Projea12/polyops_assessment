@@ -74,7 +74,7 @@ lib/
 ### Setup
 
 ```bash
-git clone <repo-url>
+git clone <https://github.com/Projea12/polyops_assessment/tree/main>
 cd polyops_assessment
 flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
@@ -233,11 +233,83 @@ These are the non-obvious boundaries that fail silently when violated:
 
 ## Running Tests
 
+### Run all tests
+
 ```bash
 flutter test
 ```
 
-Current test coverage is minimal (smoke test only). See `test/` directory.
+64 tests, all passing. No backend or platform channels required — tests run entirely on the Dart VM.
+
+### Run a specific suite
+
+```bash
+# Domain entity logic
+flutter test test/domain/entities/
+
+# Use case validation
+flutter test test/domain/usecases/
+
+# BLoC state machines
+flutter test test/presentation/task/bloc/
+flutter test test/presentation/documents/bloc/
+flutter test test/presentation/sync/bloc/
+```
+
+### Test structure
+
+```
+test/
+├── helpers/
+│   └── test_helpers.dart        # Shared mocks, factory helpers, Either utilities
+├── domain/
+│   ├── entities/
+│   │   ├── task_test.dart                      # isOverdue, equality, copyWith
+│   │   └── verification_document_test.dart     # isTerminal, canRetry, resetForRetry, rollback
+│   └── usecases/
+│       ├── update_task_usecase_test.dart        # Validation, repository delegation, failure propagation
+│       └── add_comment_usecase_test.dart        # Blank/too-long content, whitespace trimming
+└── presentation/
+    ├── task/bloc/
+    │   ├── board_bloc_test.dart         # LoadBoard, MoveTask (optimistic + revert), not-loaded guard
+    │   └── task_detail_bloc_test.dart   # Subscription, save, delete, comment — all paths
+    ├── documents/bloc/
+    │   └── document_bloc_test.dart      # Seeded connectivity, upload success/failure, reset
+    └── sync/bloc/
+        └── sync_bloc_test.dart          # Conflict stream, SyncTriggered droppable, ConflictResolved
+```
+
+### Testing philosophy
+
+Tests are organised by layer, not by file. Each layer has a different goal:
+
+**Domain layer** — pure Dart, no mocks needed for entity logic. Tests exercise computed properties (`isOverdue`, `isTerminal`, `canRetry`) and value object invariants (`rollback`, `resetForRetry`). Use case tests verify that validation fires before the repository is called, and that `Either<Failure, T>` propagates correctly.
+
+**BLoC layer** — each BLoC is tested with `bloc_test` against its full event → state contract. Key scenarios covered:
+- `restartable()` stream re-subscription
+- `droppable()` event de-duplication (second `SyncTriggered` while first is in flight)
+- Optimistic state mutation with revert on failure (`MoveTask`)
+- Not-loaded guard (`DocumentUploadRequested` ignored when state is not `DocumentLoaded`)
+- Connectivity seeding from repository before first stream emission
+
+**What is not unit-tested and why:** widget tests and integration tests require a fully configured DI graph (`getIt`), platform channels (SQLite via `drift_flutter`, connectivity via `connectivity_plus`), and real file system access. These are covered by running the app directly in the dev environment. Mocking them would add maintenance cost without catching real regressions — the failure mode is always in the platform channel binding, not in widget layout logic.
+
+### Shared test utilities
+
+`test/helpers/test_helpers.dart` provides:
+
+```dart
+// Factory helpers with sensible defaults — override only what the test cares about
+Task makeTask({String id, String title, TaskStatus status, DateTime? dueDate, ...})
+BoardTask makeBoardTask({String id, TaskStatus status, int boardPosition, ...})
+VerificationDocument makeDocument({String id, VerificationStatus status, ...})
+SyncConflict makeSyncConflict({String taskId, String fieldName, ...})
+Comment makeComment({String id, String taskId, String content, ...})
+
+// Either helpers
+Either<Failure, T> ok<T>(T value)           // right(value)
+Either<Failure, T> failWith<T>(String msg)  // left(NetworkFailure(msg))
+```
 
 ---
 
