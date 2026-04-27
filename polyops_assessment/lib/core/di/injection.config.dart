@@ -196,6 +196,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i761.DocumentBloc(
         gh<_i921.WatchDocumentUseCase>(),
         gh<_i881.UploadDocumentUseCase>(),
+        gh<_i147.IDocumentRepository>(),
       ),
     );
     gh.factory<_i899.TaskDetailBloc>(

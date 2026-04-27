@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../domain/entities/connectivity_status.dart';
 import '../../../domain/entities/verification_document.dart';
+import '../../../domain/repositories/i_document_repository.dart';
 import '../../../domain/usecases/document/upload_document_usecase.dart';
 import '../../../domain/usecases/document/watch_document_usecase.dart';
 import 'document_event.dart';
@@ -30,8 +31,9 @@ final class _ConnUpdate extends _DashboardUpdate {
 class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   final WatchDocumentUseCase _watchDocuments;
   final UploadDocumentUseCase _uploadDocument;
+  final IDocumentRepository _documentRepository;
 
-  DocumentBloc(this._watchDocuments, this._uploadDocument)
+  DocumentBloc(this._watchDocuments, this._uploadDocument, this._documentRepository)
       : super(const DocumentState.initial()) {
     on<DocumentSubscriptionRequested>(
       _onSubscriptionRequested,
@@ -52,11 +54,11 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
 
     // Seed from the repository's current value so connectivity is correct even
     // before the first stream emission arrives.
-    var currentConnStatus = _watchDocuments.connectivityStatus;
+    var currentConnStatus = _documentRepository.connectivityStatus;
 
     final merged = StreamGroup.merge([
       _watchDocuments.watchAll().map<_DashboardUpdate>(_DocsUpdate.new),
-      _watchDocuments
+      _documentRepository
           .watchConnectivityStatus()
           .map<_DashboardUpdate>(_ConnUpdate.new),
     ]);

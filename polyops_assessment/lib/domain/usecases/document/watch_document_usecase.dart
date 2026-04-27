@@ -1,6 +1,5 @@
 import 'package:injectable/injectable.dart';
 
-import '../../entities/connectivity_status.dart';
 import '../../entities/verification_document.dart';
 import '../../repositories/i_document_repository.dart';
 
@@ -14,9 +13,4 @@ class WatchDocumentUseCase {
 
   Stream<List<VerificationDocument>> watchAll() =>
       _repository.watchAllDocuments();
-
-  ConnectivityStatus get connectivityStatus => _repository.connectivityStatus;
-
-  Stream<ConnectivityStatus> watchConnectivityStatus() =>
-      _repository.watchConnectivityStatus();
 }
