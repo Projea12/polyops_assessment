@@ -1,13 +1,12 @@
 import 'dart:math';
 
 import 'package:injectable/injectable.dart';
-import 'package:polyops_assessment/core/auth/auth_token_provider.dart';
-import 'package:polyops_assessment/data/datasources/dtos/document_status_response_dto.dart';
-import 'package:polyops_assessment/data/datasources/dtos/document_upload_response_dto.dart';
 
+import '../../../core/auth/auth_token_provider.dart';
 import '../../../domain/entities/document_type.dart';
 import '../../../domain/entities/verification_status.dart';
-
+import '../../dtos/document_status_response_dto.dart';
+import '../../dtos/document_upload_response_dto.dart';
 
 @lazySingleton
 class DocumentApiService {

@@ -4,7 +4,6 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fpdart/fpdart.dart' hide Task;
 import 'package:injectable/injectable.dart';
-import 'package:polyops_assessment/domain/failure/failures.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/utils/stream_extensions.dart';
@@ -14,6 +13,7 @@ import '../../domain/entities/comment.dart';
 import '../../domain/entities/task.dart';
 import '../../domain/entities/task_priority.dart';
 import '../../domain/entities/task_status.dart';
+import '../../domain/failures/failures.dart';
 import '../../domain/entities/outbox_entry.dart';
 import '../../domain/repositories/i_task_repository.dart';
 import '../datasources/local/app_database.dart';

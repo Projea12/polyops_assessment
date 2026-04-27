@@ -1,8 +1,6 @@
-
-
-import 'package:polyops_assessment/domain/entities/document_type.dart';
-import 'package:polyops_assessment/domain/entities/verification_document.dart';
-import 'package:polyops_assessment/domain/entities/verification_status.dart';
+import '../../domain/entities/document_type.dart';
+import '../../domain/entities/verification_document.dart';
+import '../../domain/entities/verification_status.dart';
 
 class DocumentUploadResponseDto {
   final String id;

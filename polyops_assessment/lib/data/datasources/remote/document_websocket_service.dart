@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
-import 'package:polyops_assessment/data/datasources/dtos/websocket_message_dto.dart';
-import '../../../core/auth/auth_token_provider.dart';
 
+import '../../../core/auth/auth_token_provider.dart';
+import '../../dtos/websocket_message_dto.dart';
 
 enum WebSocketState { disconnected, connecting, connected, failed }
 

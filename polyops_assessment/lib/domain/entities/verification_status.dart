@@ -1,10 +1,12 @@
 enum VerificationStatus {
+  none,
   pending,
   processing,
   verified,
   rejected;
 
   String get apiValue => switch (this) {
+        VerificationStatus.none => 'NONE',
         VerificationStatus.pending => 'PENDING',
         VerificationStatus.processing => 'PROCESSING',
         VerificationStatus.verified => 'VERIFIED',
@@ -12,6 +14,7 @@ enum VerificationStatus {
       };
 
   String get label => switch (this) {
+        VerificationStatus.none => 'Initial Upload',
         VerificationStatus.pending => 'Pending',
         VerificationStatus.processing => 'Processing',
         VerificationStatus.verified => 'Verified',
@@ -19,6 +22,7 @@ enum VerificationStatus {
       };
 
   static VerificationStatus fromApi(String value) => switch (value) {
+        'NONE' => VerificationStatus.none,
         'PENDING' => VerificationStatus.pending,
         'UPLOADED' => VerificationStatus.pending, // upload response maps to pending
         'PROCESSING' => VerificationStatus.processing,

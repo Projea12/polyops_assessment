@@ -2279,6 +2279,1301 @@ class SyncMetaTableCompanion extends UpdateCompanion<SyncMetaTableData> {
   }
 }
 
+class $DocumentsTableTable extends DocumentsTable
+    with TableInfo<$DocumentsTableTable, DocumentsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _progressMeta = const VerificationMeta(
+    'progress',
+  );
+  @override
+  late final GeneratedColumn<double> progress = GeneratedColumn<double>(
+    'progress',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _filePathMeta = const VerificationMeta(
+    'filePath',
+  );
+  @override
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+    'file_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originalNameMeta = const VerificationMeta(
+    'originalName',
+  );
+  @override
+  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
+    'original_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fileSizeMeta = const VerificationMeta(
+    'fileSize',
+  );
+  @override
+  late final GeneratedColumn<int> fileSize = GeneratedColumn<int>(
+    'file_size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _checksumMeta = const VerificationMeta(
+    'checksum',
+  );
+  @override
+  late final GeneratedColumn<String> checksum = GeneratedColumn<String>(
+    'checksum',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _estimatedProcessingTimeMeta =
+      const VerificationMeta('estimatedProcessingTime');
+  @override
+  late final GeneratedColumn<int> estimatedProcessingTime =
+      GeneratedColumn<int>(
+        'estimated_processing_time',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(30),
+      );
+  static const VerificationMeta _uploadedAtMeta = const VerificationMeta(
+    'uploadedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> uploadedAt = GeneratedColumn<DateTime>(
+    'uploaded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _verifiedAtMeta = const VerificationMeta(
+    'verifiedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> verifiedAt = GeneratedColumn<DateTime>(
+    'verified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rejectionReasonMeta = const VerificationMeta(
+    'rejectionReason',
+  );
+  @override
+  late final GeneratedColumn<String> rejectionReason = GeneratedColumn<String>(
+    'rejection_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currentStageJsonMeta = const VerificationMeta(
+    'currentStageJson',
+  );
+  @override
+  late final GeneratedColumn<String> currentStageJson = GeneratedColumn<String>(
+    'current_stage_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retryCountMeta = const VerificationMeta(
+    'retryCount',
+  );
+  @override
+  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
+    'retry_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    status,
+    progress,
+    filePath,
+    originalName,
+    fileSize,
+    checksum,
+    estimatedProcessingTime,
+    uploadedAt,
+    verifiedAt,
+    expiresAt,
+    rejectionReason,
+    currentStageJson,
+    retryCount,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'documents_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('progress')) {
+      context.handle(
+        _progressMeta,
+        progress.isAcceptableOrUnknown(data['progress']!, _progressMeta),
+      );
+    }
+    if (data.containsKey('file_path')) {
+      context.handle(
+        _filePathMeta,
+        filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_filePathMeta);
+    }
+    if (data.containsKey('original_name')) {
+      context.handle(
+        _originalNameMeta,
+        originalName.isAcceptableOrUnknown(
+          data['original_name']!,
+          _originalNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_originalNameMeta);
+    }
+    if (data.containsKey('file_size')) {
+      context.handle(
+        _fileSizeMeta,
+        fileSize.isAcceptableOrUnknown(data['file_size']!, _fileSizeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileSizeMeta);
+    }
+    if (data.containsKey('checksum')) {
+      context.handle(
+        _checksumMeta,
+        checksum.isAcceptableOrUnknown(data['checksum']!, _checksumMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_checksumMeta);
+    }
+    if (data.containsKey('estimated_processing_time')) {
+      context.handle(
+        _estimatedProcessingTimeMeta,
+        estimatedProcessingTime.isAcceptableOrUnknown(
+          data['estimated_processing_time']!,
+          _estimatedProcessingTimeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('uploaded_at')) {
+      context.handle(
+        _uploadedAtMeta,
+        uploadedAt.isAcceptableOrUnknown(data['uploaded_at']!, _uploadedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uploadedAtMeta);
+    }
+    if (data.containsKey('verified_at')) {
+      context.handle(
+        _verifiedAtMeta,
+        verifiedAt.isAcceptableOrUnknown(data['verified_at']!, _verifiedAtMeta),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    }
+    if (data.containsKey('rejection_reason')) {
+      context.handle(
+        _rejectionReasonMeta,
+        rejectionReason.isAcceptableOrUnknown(
+          data['rejection_reason']!,
+          _rejectionReasonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('current_stage_json')) {
+      context.handle(
+        _currentStageJsonMeta,
+        currentStageJson.isAcceptableOrUnknown(
+          data['current_stage_json']!,
+          _currentStageJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('retry_count')) {
+      context.handle(
+        _retryCountMeta,
+        retryCount.isAcceptableOrUnknown(data['retry_count']!, _retryCountMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DocumentsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      progress: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}progress'],
+      )!,
+      filePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_path'],
+      )!,
+      originalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_name'],
+      )!,
+      fileSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_size'],
+      )!,
+      checksum: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}checksum'],
+      )!,
+      estimatedProcessingTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}estimated_processing_time'],
+      )!,
+      uploadedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}uploaded_at'],
+      )!,
+      verifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}verified_at'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      rejectionReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rejection_reason'],
+      ),
+      currentStageJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}current_stage_json'],
+      ),
+      retryCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retry_count'],
+      )!,
+    );
+  }
+
+  @override
+  $DocumentsTableTable createAlias(String alias) {
+    return $DocumentsTableTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentsTableData extends DataClass
+    implements Insertable<DocumentsTableData> {
+  final String id;
+  final String type;
+  final String status;
+  final double progress;
+  final String filePath;
+  final String originalName;
+  final int fileSize;
+  final String checksum;
+  final int estimatedProcessingTime;
+  final DateTime uploadedAt;
+  final DateTime? verifiedAt;
+  final DateTime? expiresAt;
+  final String? rejectionReason;
+  final String? currentStageJson;
+  final int retryCount;
+  const DocumentsTableData({
+    required this.id,
+    required this.type,
+    required this.status,
+    required this.progress,
+    required this.filePath,
+    required this.originalName,
+    required this.fileSize,
+    required this.checksum,
+    required this.estimatedProcessingTime,
+    required this.uploadedAt,
+    this.verifiedAt,
+    this.expiresAt,
+    this.rejectionReason,
+    this.currentStageJson,
+    required this.retryCount,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['type'] = Variable<String>(type);
+    map['status'] = Variable<String>(status);
+    map['progress'] = Variable<double>(progress);
+    map['file_path'] = Variable<String>(filePath);
+    map['original_name'] = Variable<String>(originalName);
+    map['file_size'] = Variable<int>(fileSize);
+    map['checksum'] = Variable<String>(checksum);
+    map['estimated_processing_time'] = Variable<int>(estimatedProcessingTime);
+    map['uploaded_at'] = Variable<DateTime>(uploadedAt);
+    if (!nullToAbsent || verifiedAt != null) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt);
+    }
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || rejectionReason != null) {
+      map['rejection_reason'] = Variable<String>(rejectionReason);
+    }
+    if (!nullToAbsent || currentStageJson != null) {
+      map['current_stage_json'] = Variable<String>(currentStageJson);
+    }
+    map['retry_count'] = Variable<int>(retryCount);
+    return map;
+  }
+
+  DocumentsTableCompanion toCompanion(bool nullToAbsent) {
+    return DocumentsTableCompanion(
+      id: Value(id),
+      type: Value(type),
+      status: Value(status),
+      progress: Value(progress),
+      filePath: Value(filePath),
+      originalName: Value(originalName),
+      fileSize: Value(fileSize),
+      checksum: Value(checksum),
+      estimatedProcessingTime: Value(estimatedProcessingTime),
+      uploadedAt: Value(uploadedAt),
+      verifiedAt: verifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedAt),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      rejectionReason: rejectionReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rejectionReason),
+      currentStageJson: currentStageJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentStageJson),
+      retryCount: Value(retryCount),
+    );
+  }
+
+  factory DocumentsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      type: serializer.fromJson<String>(json['type']),
+      status: serializer.fromJson<String>(json['status']),
+      progress: serializer.fromJson<double>(json['progress']),
+      filePath: serializer.fromJson<String>(json['filePath']),
+      originalName: serializer.fromJson<String>(json['originalName']),
+      fileSize: serializer.fromJson<int>(json['fileSize']),
+      checksum: serializer.fromJson<String>(json['checksum']),
+      estimatedProcessingTime: serializer.fromJson<int>(
+        json['estimatedProcessingTime'],
+      ),
+      uploadedAt: serializer.fromJson<DateTime>(json['uploadedAt']),
+      verifiedAt: serializer.fromJson<DateTime?>(json['verifiedAt']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      rejectionReason: serializer.fromJson<String?>(json['rejectionReason']),
+      currentStageJson: serializer.fromJson<String?>(json['currentStageJson']),
+      retryCount: serializer.fromJson<int>(json['retryCount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'type': serializer.toJson<String>(type),
+      'status': serializer.toJson<String>(status),
+      'progress': serializer.toJson<double>(progress),
+      'filePath': serializer.toJson<String>(filePath),
+      'originalName': serializer.toJson<String>(originalName),
+      'fileSize': serializer.toJson<int>(fileSize),
+      'checksum': serializer.toJson<String>(checksum),
+      'estimatedProcessingTime': serializer.toJson<int>(
+        estimatedProcessingTime,
+      ),
+      'uploadedAt': serializer.toJson<DateTime>(uploadedAt),
+      'verifiedAt': serializer.toJson<DateTime?>(verifiedAt),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'rejectionReason': serializer.toJson<String?>(rejectionReason),
+      'currentStageJson': serializer.toJson<String?>(currentStageJson),
+      'retryCount': serializer.toJson<int>(retryCount),
+    };
+  }
+
+  DocumentsTableData copyWith({
+    String? id,
+    String? type,
+    String? status,
+    double? progress,
+    String? filePath,
+    String? originalName,
+    int? fileSize,
+    String? checksum,
+    int? estimatedProcessingTime,
+    DateTime? uploadedAt,
+    Value<DateTime?> verifiedAt = const Value.absent(),
+    Value<DateTime?> expiresAt = const Value.absent(),
+    Value<String?> rejectionReason = const Value.absent(),
+    Value<String?> currentStageJson = const Value.absent(),
+    int? retryCount,
+  }) => DocumentsTableData(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    status: status ?? this.status,
+    progress: progress ?? this.progress,
+    filePath: filePath ?? this.filePath,
+    originalName: originalName ?? this.originalName,
+    fileSize: fileSize ?? this.fileSize,
+    checksum: checksum ?? this.checksum,
+    estimatedProcessingTime:
+        estimatedProcessingTime ?? this.estimatedProcessingTime,
+    uploadedAt: uploadedAt ?? this.uploadedAt,
+    verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    rejectionReason: rejectionReason.present
+        ? rejectionReason.value
+        : this.rejectionReason,
+    currentStageJson: currentStageJson.present
+        ? currentStageJson.value
+        : this.currentStageJson,
+    retryCount: retryCount ?? this.retryCount,
+  );
+  DocumentsTableData copyWithCompanion(DocumentsTableCompanion data) {
+    return DocumentsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      status: data.status.present ? data.status.value : this.status,
+      progress: data.progress.present ? data.progress.value : this.progress,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      originalName: data.originalName.present
+          ? data.originalName.value
+          : this.originalName,
+      fileSize: data.fileSize.present ? data.fileSize.value : this.fileSize,
+      checksum: data.checksum.present ? data.checksum.value : this.checksum,
+      estimatedProcessingTime: data.estimatedProcessingTime.present
+          ? data.estimatedProcessingTime.value
+          : this.estimatedProcessingTime,
+      uploadedAt: data.uploadedAt.present
+          ? data.uploadedAt.value
+          : this.uploadedAt,
+      verifiedAt: data.verifiedAt.present
+          ? data.verifiedAt.value
+          : this.verifiedAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      rejectionReason: data.rejectionReason.present
+          ? data.rejectionReason.value
+          : this.rejectionReason,
+      currentStageJson: data.currentStageJson.present
+          ? data.currentStageJson.value
+          : this.currentStageJson,
+      retryCount: data.retryCount.present
+          ? data.retryCount.value
+          : this.retryCount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentsTableData(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('status: $status, ')
+          ..write('progress: $progress, ')
+          ..write('filePath: $filePath, ')
+          ..write('originalName: $originalName, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('checksum: $checksum, ')
+          ..write('estimatedProcessingTime: $estimatedProcessingTime, ')
+          ..write('uploadedAt: $uploadedAt, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('rejectionReason: $rejectionReason, ')
+          ..write('currentStageJson: $currentStageJson, ')
+          ..write('retryCount: $retryCount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    status,
+    progress,
+    filePath,
+    originalName,
+    fileSize,
+    checksum,
+    estimatedProcessingTime,
+    uploadedAt,
+    verifiedAt,
+    expiresAt,
+    rejectionReason,
+    currentStageJson,
+    retryCount,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentsTableData &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.status == this.status &&
+          other.progress == this.progress &&
+          other.filePath == this.filePath &&
+          other.originalName == this.originalName &&
+          other.fileSize == this.fileSize &&
+          other.checksum == this.checksum &&
+          other.estimatedProcessingTime == this.estimatedProcessingTime &&
+          other.uploadedAt == this.uploadedAt &&
+          other.verifiedAt == this.verifiedAt &&
+          other.expiresAt == this.expiresAt &&
+          other.rejectionReason == this.rejectionReason &&
+          other.currentStageJson == this.currentStageJson &&
+          other.retryCount == this.retryCount);
+}
+
+class DocumentsTableCompanion extends UpdateCompanion<DocumentsTableData> {
+  final Value<String> id;
+  final Value<String> type;
+  final Value<String> status;
+  final Value<double> progress;
+  final Value<String> filePath;
+  final Value<String> originalName;
+  final Value<int> fileSize;
+  final Value<String> checksum;
+  final Value<int> estimatedProcessingTime;
+  final Value<DateTime> uploadedAt;
+  final Value<DateTime?> verifiedAt;
+  final Value<DateTime?> expiresAt;
+  final Value<String?> rejectionReason;
+  final Value<String?> currentStageJson;
+  final Value<int> retryCount;
+  final Value<int> rowid;
+  const DocumentsTableCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.status = const Value.absent(),
+    this.progress = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.originalName = const Value.absent(),
+    this.fileSize = const Value.absent(),
+    this.checksum = const Value.absent(),
+    this.estimatedProcessingTime = const Value.absent(),
+    this.uploadedAt = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.rejectionReason = const Value.absent(),
+    this.currentStageJson = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentsTableCompanion.insert({
+    required String id,
+    required String type,
+    required String status,
+    this.progress = const Value.absent(),
+    required String filePath,
+    required String originalName,
+    required int fileSize,
+    required String checksum,
+    this.estimatedProcessingTime = const Value.absent(),
+    required DateTime uploadedAt,
+    this.verifiedAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.rejectionReason = const Value.absent(),
+    this.currentStageJson = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       type = Value(type),
+       status = Value(status),
+       filePath = Value(filePath),
+       originalName = Value(originalName),
+       fileSize = Value(fileSize),
+       checksum = Value(checksum),
+       uploadedAt = Value(uploadedAt);
+  static Insertable<DocumentsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? type,
+    Expression<String>? status,
+    Expression<double>? progress,
+    Expression<String>? filePath,
+    Expression<String>? originalName,
+    Expression<int>? fileSize,
+    Expression<String>? checksum,
+    Expression<int>? estimatedProcessingTime,
+    Expression<DateTime>? uploadedAt,
+    Expression<DateTime>? verifiedAt,
+    Expression<DateTime>? expiresAt,
+    Expression<String>? rejectionReason,
+    Expression<String>? currentStageJson,
+    Expression<int>? retryCount,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (status != null) 'status': status,
+      if (progress != null) 'progress': progress,
+      if (filePath != null) 'file_path': filePath,
+      if (originalName != null) 'original_name': originalName,
+      if (fileSize != null) 'file_size': fileSize,
+      if (checksum != null) 'checksum': checksum,
+      if (estimatedProcessingTime != null)
+        'estimated_processing_time': estimatedProcessingTime,
+      if (uploadedAt != null) 'uploaded_at': uploadedAt,
+      if (verifiedAt != null) 'verified_at': verifiedAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (rejectionReason != null) 'rejection_reason': rejectionReason,
+      if (currentStageJson != null) 'current_stage_json': currentStageJson,
+      if (retryCount != null) 'retry_count': retryCount,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? type,
+    Value<String>? status,
+    Value<double>? progress,
+    Value<String>? filePath,
+    Value<String>? originalName,
+    Value<int>? fileSize,
+    Value<String>? checksum,
+    Value<int>? estimatedProcessingTime,
+    Value<DateTime>? uploadedAt,
+    Value<DateTime?>? verifiedAt,
+    Value<DateTime?>? expiresAt,
+    Value<String?>? rejectionReason,
+    Value<String?>? currentStageJson,
+    Value<int>? retryCount,
+    Value<int>? rowid,
+  }) {
+    return DocumentsTableCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      progress: progress ?? this.progress,
+      filePath: filePath ?? this.filePath,
+      originalName: originalName ?? this.originalName,
+      fileSize: fileSize ?? this.fileSize,
+      checksum: checksum ?? this.checksum,
+      estimatedProcessingTime:
+          estimatedProcessingTime ?? this.estimatedProcessingTime,
+      uploadedAt: uploadedAt ?? this.uploadedAt,
+      verifiedAt: verifiedAt ?? this.verifiedAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      currentStageJson: currentStageJson ?? this.currentStageJson,
+      retryCount: retryCount ?? this.retryCount,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (progress.present) {
+      map['progress'] = Variable<double>(progress.value);
+    }
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (originalName.present) {
+      map['original_name'] = Variable<String>(originalName.value);
+    }
+    if (fileSize.present) {
+      map['file_size'] = Variable<int>(fileSize.value);
+    }
+    if (checksum.present) {
+      map['checksum'] = Variable<String>(checksum.value);
+    }
+    if (estimatedProcessingTime.present) {
+      map['estimated_processing_time'] = Variable<int>(
+        estimatedProcessingTime.value,
+      );
+    }
+    if (uploadedAt.present) {
+      map['uploaded_at'] = Variable<DateTime>(uploadedAt.value);
+    }
+    if (verifiedAt.present) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (rejectionReason.present) {
+      map['rejection_reason'] = Variable<String>(rejectionReason.value);
+    }
+    if (currentStageJson.present) {
+      map['current_stage_json'] = Variable<String>(currentStageJson.value);
+    }
+    if (retryCount.present) {
+      map['retry_count'] = Variable<int>(retryCount.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('status: $status, ')
+          ..write('progress: $progress, ')
+          ..write('filePath: $filePath, ')
+          ..write('originalName: $originalName, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('checksum: $checksum, ')
+          ..write('estimatedProcessingTime: $estimatedProcessingTime, ')
+          ..write('uploadedAt: $uploadedAt, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('rejectionReason: $rejectionReason, ')
+          ..write('currentStageJson: $currentStageJson, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentAuditTableTable extends DocumentAuditTable
+    with TableInfo<$DocumentAuditTableTable, DocumentAuditTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentAuditTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _documentIdMeta = const VerificationMeta(
+    'documentId',
+  );
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+    'document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fromStatusMeta = const VerificationMeta(
+    'fromStatus',
+  );
+  @override
+  late final GeneratedColumn<String> fromStatus = GeneratedColumn<String>(
+    'from_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _toStatusMeta = const VerificationMeta(
+    'toStatus',
+  );
+  @override
+  late final GeneratedColumn<String> toStatus = GeneratedColumn<String>(
+    'to_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _timestampMeta = const VerificationMeta(
+    'timestamp',
+  );
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+    'timestamp',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    documentId,
+    fromStatus,
+    toStatus,
+    note,
+    timestamp,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_audit_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentAuditTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('document_id')) {
+      context.handle(
+        _documentIdMeta,
+        documentId.isAcceptableOrUnknown(data['document_id']!, _documentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_documentIdMeta);
+    }
+    if (data.containsKey('from_status')) {
+      context.handle(
+        _fromStatusMeta,
+        fromStatus.isAcceptableOrUnknown(data['from_status']!, _fromStatusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fromStatusMeta);
+    }
+    if (data.containsKey('to_status')) {
+      context.handle(
+        _toStatusMeta,
+        toStatus.isAcceptableOrUnknown(data['to_status']!, _toStatusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_toStatusMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(
+        _timestampMeta,
+        timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_timestampMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DocumentAuditTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentAuditTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      documentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document_id'],
+      )!,
+      fromStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_status'],
+      )!,
+      toStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}to_status'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      timestamp: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}timestamp'],
+      )!,
+    );
+  }
+
+  @override
+  $DocumentAuditTableTable createAlias(String alias) {
+    return $DocumentAuditTableTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentAuditTableData extends DataClass
+    implements Insertable<DocumentAuditTableData> {
+  final String id;
+  final String documentId;
+  final String fromStatus;
+  final String toStatus;
+  final String? note;
+  final DateTime timestamp;
+  const DocumentAuditTableData({
+    required this.id,
+    required this.documentId,
+    required this.fromStatus,
+    required this.toStatus,
+    this.note,
+    required this.timestamp,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['document_id'] = Variable<String>(documentId);
+    map['from_status'] = Variable<String>(fromStatus);
+    map['to_status'] = Variable<String>(toStatus);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    return map;
+  }
+
+  DocumentAuditTableCompanion toCompanion(bool nullToAbsent) {
+    return DocumentAuditTableCompanion(
+      id: Value(id),
+      documentId: Value(documentId),
+      fromStatus: Value(fromStatus),
+      toStatus: Value(toStatus),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      timestamp: Value(timestamp),
+    );
+  }
+
+  factory DocumentAuditTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentAuditTableData(
+      id: serializer.fromJson<String>(json['id']),
+      documentId: serializer.fromJson<String>(json['documentId']),
+      fromStatus: serializer.fromJson<String>(json['fromStatus']),
+      toStatus: serializer.fromJson<String>(json['toStatus']),
+      note: serializer.fromJson<String?>(json['note']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'documentId': serializer.toJson<String>(documentId),
+      'fromStatus': serializer.toJson<String>(fromStatus),
+      'toStatus': serializer.toJson<String>(toStatus),
+      'note': serializer.toJson<String?>(note),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+    };
+  }
+
+  DocumentAuditTableData copyWith({
+    String? id,
+    String? documentId,
+    String? fromStatus,
+    String? toStatus,
+    Value<String?> note = const Value.absent(),
+    DateTime? timestamp,
+  }) => DocumentAuditTableData(
+    id: id ?? this.id,
+    documentId: documentId ?? this.documentId,
+    fromStatus: fromStatus ?? this.fromStatus,
+    toStatus: toStatus ?? this.toStatus,
+    note: note.present ? note.value : this.note,
+    timestamp: timestamp ?? this.timestamp,
+  );
+  DocumentAuditTableData copyWithCompanion(DocumentAuditTableCompanion data) {
+    return DocumentAuditTableData(
+      id: data.id.present ? data.id.value : this.id,
+      documentId: data.documentId.present
+          ? data.documentId.value
+          : this.documentId,
+      fromStatus: data.fromStatus.present
+          ? data.fromStatus.value
+          : this.fromStatus,
+      toStatus: data.toStatus.present ? data.toStatus.value : this.toStatus,
+      note: data.note.present ? data.note.value : this.note,
+      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentAuditTableData(')
+          ..write('id: $id, ')
+          ..write('documentId: $documentId, ')
+          ..write('fromStatus: $fromStatus, ')
+          ..write('toStatus: $toStatus, ')
+          ..write('note: $note, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, documentId, fromStatus, toStatus, note, timestamp);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentAuditTableData &&
+          other.id == this.id &&
+          other.documentId == this.documentId &&
+          other.fromStatus == this.fromStatus &&
+          other.toStatus == this.toStatus &&
+          other.note == this.note &&
+          other.timestamp == this.timestamp);
+}
+
+class DocumentAuditTableCompanion
+    extends UpdateCompanion<DocumentAuditTableData> {
+  final Value<String> id;
+  final Value<String> documentId;
+  final Value<String> fromStatus;
+  final Value<String> toStatus;
+  final Value<String?> note;
+  final Value<DateTime> timestamp;
+  final Value<int> rowid;
+  const DocumentAuditTableCompanion({
+    this.id = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.fromStatus = const Value.absent(),
+    this.toStatus = const Value.absent(),
+    this.note = const Value.absent(),
+    this.timestamp = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentAuditTableCompanion.insert({
+    required String id,
+    required String documentId,
+    required String fromStatus,
+    required String toStatus,
+    this.note = const Value.absent(),
+    required DateTime timestamp,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       documentId = Value(documentId),
+       fromStatus = Value(fromStatus),
+       toStatus = Value(toStatus),
+       timestamp = Value(timestamp);
+  static Insertable<DocumentAuditTableData> custom({
+    Expression<String>? id,
+    Expression<String>? documentId,
+    Expression<String>? fromStatus,
+    Expression<String>? toStatus,
+    Expression<String>? note,
+    Expression<DateTime>? timestamp,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (documentId != null) 'document_id': documentId,
+      if (fromStatus != null) 'from_status': fromStatus,
+      if (toStatus != null) 'to_status': toStatus,
+      if (note != null) 'note': note,
+      if (timestamp != null) 'timestamp': timestamp,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentAuditTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? documentId,
+    Value<String>? fromStatus,
+    Value<String>? toStatus,
+    Value<String?>? note,
+    Value<DateTime>? timestamp,
+    Value<int>? rowid,
+  }) {
+    return DocumentAuditTableCompanion(
+      id: id ?? this.id,
+      documentId: documentId ?? this.documentId,
+      fromStatus: fromStatus ?? this.fromStatus,
+      toStatus: toStatus ?? this.toStatus,
+      note: note ?? this.note,
+      timestamp: timestamp ?? this.timestamp,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (documentId.present) {
+      map['document_id'] = Variable<String>(documentId.value);
+    }
+    if (fromStatus.present) {
+      map['from_status'] = Variable<String>(fromStatus.value);
+    }
+    if (toStatus.present) {
+      map['to_status'] = Variable<String>(toStatus.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentAuditTableCompanion(')
+          ..write('id: $id, ')
+          ..write('documentId: $documentId, ')
+          ..write('fromStatus: $fromStatus, ')
+          ..write('toStatus: $toStatus, ')
+          ..write('note: $note, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2288,6 +3583,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ActivityEntriesTableTable(this);
   late final $OutboxTableTable outboxTable = $OutboxTableTable(this);
   late final $SyncMetaTableTable syncMetaTable = $SyncMetaTableTable(this);
+  late final $DocumentsTableTable documentsTable = $DocumentsTableTable(this);
+  late final $DocumentAuditTableTable documentAuditTable =
+      $DocumentAuditTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2298,6 +3596,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     activityEntriesTable,
     outboxTable,
     syncMetaTable,
+    documentsTable,
+    documentAuditTable,
   ];
 }
 
@@ -3956,6 +5256,652 @@ typedef $$SyncMetaTableTableProcessedTableManager =
       SyncMetaTableData,
       PrefetchHooks Function()
     >;
+typedef $$DocumentsTableTableCreateCompanionBuilder =
+    DocumentsTableCompanion Function({
+      required String id,
+      required String type,
+      required String status,
+      Value<double> progress,
+      required String filePath,
+      required String originalName,
+      required int fileSize,
+      required String checksum,
+      Value<int> estimatedProcessingTime,
+      required DateTime uploadedAt,
+      Value<DateTime?> verifiedAt,
+      Value<DateTime?> expiresAt,
+      Value<String?> rejectionReason,
+      Value<String?> currentStageJson,
+      Value<int> retryCount,
+      Value<int> rowid,
+    });
+typedef $$DocumentsTableTableUpdateCompanionBuilder =
+    DocumentsTableCompanion Function({
+      Value<String> id,
+      Value<String> type,
+      Value<String> status,
+      Value<double> progress,
+      Value<String> filePath,
+      Value<String> originalName,
+      Value<int> fileSize,
+      Value<String> checksum,
+      Value<int> estimatedProcessingTime,
+      Value<DateTime> uploadedAt,
+      Value<DateTime?> verifiedAt,
+      Value<DateTime?> expiresAt,
+      Value<String?> rejectionReason,
+      Value<String?> currentStageJson,
+      Value<int> retryCount,
+      Value<int> rowid,
+    });
+
+class $$DocumentsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $DocumentsTableTable> {
+  $$DocumentsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fileSize => $composableBuilder(
+    column: $table.fileSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get checksum => $composableBuilder(
+    column: $table.checksum,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get estimatedProcessingTime => $composableBuilder(
+    column: $table.estimatedProcessingTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get uploadedAt => $composableBuilder(
+    column: $table.uploadedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rejectionReason => $composableBuilder(
+    column: $table.rejectionReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currentStageJson => $composableBuilder(
+    column: $table.currentStageJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DocumentsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $DocumentsTableTable> {
+  $$DocumentsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fileSize => $composableBuilder(
+    column: $table.fileSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get checksum => $composableBuilder(
+    column: $table.checksum,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get estimatedProcessingTime => $composableBuilder(
+    column: $table.estimatedProcessingTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get uploadedAt => $composableBuilder(
+    column: $table.uploadedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rejectionReason => $composableBuilder(
+    column: $table.rejectionReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currentStageJson => $composableBuilder(
+    column: $table.currentStageJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DocumentsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DocumentsTableTable> {
+  $$DocumentsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<double> get progress =>
+      $composableBuilder(column: $table.progress, builder: (column) => column);
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get fileSize =>
+      $composableBuilder(column: $table.fileSize, builder: (column) => column);
+
+  GeneratedColumn<String> get checksum =>
+      $composableBuilder(column: $table.checksum, builder: (column) => column);
+
+  GeneratedColumn<int> get estimatedProcessingTime => $composableBuilder(
+    column: $table.estimatedProcessingTime,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get uploadedAt => $composableBuilder(
+    column: $table.uploadedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get verifiedAt => $composableBuilder(
+    column: $table.verifiedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<String> get rejectionReason => $composableBuilder(
+    column: $table.rejectionReason,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currentStageJson => $composableBuilder(
+    column: $table.currentStageJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => column,
+  );
+}
+
+class $$DocumentsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DocumentsTableTable,
+          DocumentsTableData,
+          $$DocumentsTableTableFilterComposer,
+          $$DocumentsTableTableOrderingComposer,
+          $$DocumentsTableTableAnnotationComposer,
+          $$DocumentsTableTableCreateCompanionBuilder,
+          $$DocumentsTableTableUpdateCompanionBuilder,
+          (
+            DocumentsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $DocumentsTableTable,
+              DocumentsTableData
+            >,
+          ),
+          DocumentsTableData,
+          PrefetchHooks Function()
+        > {
+  $$DocumentsTableTableTableManager(
+    _$AppDatabase db,
+    $DocumentsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DocumentsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DocumentsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DocumentsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<double> progress = const Value.absent(),
+                Value<String> filePath = const Value.absent(),
+                Value<String> originalName = const Value.absent(),
+                Value<int> fileSize = const Value.absent(),
+                Value<String> checksum = const Value.absent(),
+                Value<int> estimatedProcessingTime = const Value.absent(),
+                Value<DateTime> uploadedAt = const Value.absent(),
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<String?> rejectionReason = const Value.absent(),
+                Value<String?> currentStageJson = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentsTableCompanion(
+                id: id,
+                type: type,
+                status: status,
+                progress: progress,
+                filePath: filePath,
+                originalName: originalName,
+                fileSize: fileSize,
+                checksum: checksum,
+                estimatedProcessingTime: estimatedProcessingTime,
+                uploadedAt: uploadedAt,
+                verifiedAt: verifiedAt,
+                expiresAt: expiresAt,
+                rejectionReason: rejectionReason,
+                currentStageJson: currentStageJson,
+                retryCount: retryCount,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String type,
+                required String status,
+                Value<double> progress = const Value.absent(),
+                required String filePath,
+                required String originalName,
+                required int fileSize,
+                required String checksum,
+                Value<int> estimatedProcessingTime = const Value.absent(),
+                required DateTime uploadedAt,
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<String?> rejectionReason = const Value.absent(),
+                Value<String?> currentStageJson = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentsTableCompanion.insert(
+                id: id,
+                type: type,
+                status: status,
+                progress: progress,
+                filePath: filePath,
+                originalName: originalName,
+                fileSize: fileSize,
+                checksum: checksum,
+                estimatedProcessingTime: estimatedProcessingTime,
+                uploadedAt: uploadedAt,
+                verifiedAt: verifiedAt,
+                expiresAt: expiresAt,
+                rejectionReason: rejectionReason,
+                currentStageJson: currentStageJson,
+                retryCount: retryCount,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DocumentsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DocumentsTableTable,
+      DocumentsTableData,
+      $$DocumentsTableTableFilterComposer,
+      $$DocumentsTableTableOrderingComposer,
+      $$DocumentsTableTableAnnotationComposer,
+      $$DocumentsTableTableCreateCompanionBuilder,
+      $$DocumentsTableTableUpdateCompanionBuilder,
+      (
+        DocumentsTableData,
+        BaseReferences<_$AppDatabase, $DocumentsTableTable, DocumentsTableData>,
+      ),
+      DocumentsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$DocumentAuditTableTableCreateCompanionBuilder =
+    DocumentAuditTableCompanion Function({
+      required String id,
+      required String documentId,
+      required String fromStatus,
+      required String toStatus,
+      Value<String?> note,
+      required DateTime timestamp,
+      Value<int> rowid,
+    });
+typedef $$DocumentAuditTableTableUpdateCompanionBuilder =
+    DocumentAuditTableCompanion Function({
+      Value<String> id,
+      Value<String> documentId,
+      Value<String> fromStatus,
+      Value<String> toStatus,
+      Value<String?> note,
+      Value<DateTime> timestamp,
+      Value<int> rowid,
+    });
+
+class $$DocumentAuditTableTableFilterComposer
+    extends Composer<_$AppDatabase, $DocumentAuditTableTable> {
+  $$DocumentAuditTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromStatus => $composableBuilder(
+    column: $table.fromStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toStatus => $composableBuilder(
+    column: $table.toStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DocumentAuditTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $DocumentAuditTableTable> {
+  $$DocumentAuditTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromStatus => $composableBuilder(
+    column: $table.fromStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toStatus => $composableBuilder(
+    column: $table.toStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DocumentAuditTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DocumentAuditTableTable> {
+  $$DocumentAuditTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get fromStatus => $composableBuilder(
+    column: $table.fromStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toStatus =>
+      $composableBuilder(column: $table.toStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get timestamp =>
+      $composableBuilder(column: $table.timestamp, builder: (column) => column);
+}
+
+class $$DocumentAuditTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DocumentAuditTableTable,
+          DocumentAuditTableData,
+          $$DocumentAuditTableTableFilterComposer,
+          $$DocumentAuditTableTableOrderingComposer,
+          $$DocumentAuditTableTableAnnotationComposer,
+          $$DocumentAuditTableTableCreateCompanionBuilder,
+          $$DocumentAuditTableTableUpdateCompanionBuilder,
+          (
+            DocumentAuditTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $DocumentAuditTableTable,
+              DocumentAuditTableData
+            >,
+          ),
+          DocumentAuditTableData,
+          PrefetchHooks Function()
+        > {
+  $$DocumentAuditTableTableTableManager(
+    _$AppDatabase db,
+    $DocumentAuditTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DocumentAuditTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DocumentAuditTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DocumentAuditTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> documentId = const Value.absent(),
+                Value<String> fromStatus = const Value.absent(),
+                Value<String> toStatus = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> timestamp = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentAuditTableCompanion(
+                id: id,
+                documentId: documentId,
+                fromStatus: fromStatus,
+                toStatus: toStatus,
+                note: note,
+                timestamp: timestamp,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String documentId,
+                required String fromStatus,
+                required String toStatus,
+                Value<String?> note = const Value.absent(),
+                required DateTime timestamp,
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentAuditTableCompanion.insert(
+                id: id,
+                documentId: documentId,
+                fromStatus: fromStatus,
+                toStatus: toStatus,
+                note: note,
+                timestamp: timestamp,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DocumentAuditTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DocumentAuditTableTable,
+      DocumentAuditTableData,
+      $$DocumentAuditTableTableFilterComposer,
+      $$DocumentAuditTableTableOrderingComposer,
+      $$DocumentAuditTableTableAnnotationComposer,
+      $$DocumentAuditTableTableCreateCompanionBuilder,
+      $$DocumentAuditTableTableUpdateCompanionBuilder,
+      (
+        DocumentAuditTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $DocumentAuditTableTable,
+          DocumentAuditTableData
+        >,
+      ),
+      DocumentAuditTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3970,4 +5916,8 @@ class $AppDatabaseManager {
       $$OutboxTableTableTableManager(_db, _db.outboxTable);
   $$SyncMetaTableTableTableManager get syncMetaTable =>
       $$SyncMetaTableTableTableManager(_db, _db.syncMetaTable);
+  $$DocumentsTableTableTableManager get documentsTable =>
+      $$DocumentsTableTableTableManager(_db, _db.documentsTable);
+  $$DocumentAuditTableTableTableManager get documentAuditTable =>
+      $$DocumentAuditTableTableTableManager(_db, _db.documentAuditTable);
 }

@@ -1,8 +1,8 @@
 import 'package:fpdart/fpdart.dart' hide Task;
 import 'package:injectable/injectable.dart';
-import 'package:polyops_assessment/domain/failure/failures.dart';
 
 import '../../entities/comment.dart';
+import '../../failures/failures.dart';
 import '../../repositories/i_task_repository.dart';
 
 @lazySingleton

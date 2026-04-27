@@ -1,8 +1,6 @@
-
-
-import 'package:polyops_assessment/domain/entities/verification_document.dart';
-import 'package:polyops_assessment/domain/entities/verification_stage.dart';
-import 'package:polyops_assessment/domain/entities/verification_status.dart';
+import '../../domain/entities/verification_document.dart';
+import '../../domain/entities/verification_stage.dart';
+import '../../domain/entities/verification_status.dart';
 
 class WebSocketMessageDto {
   final String type;

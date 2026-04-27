@@ -6,12 +6,13 @@ import 'package:injectable/injectable.dart';
 
 import '../../data/datasources/local/outbox_dao.dart';
 import '../../data/datasources/local/task_dao.dart';
-import '../../domain/remote/i_remote_task_datasource.dart';
+import '../../data/remote/i_remote_task_datasource.dart';
 import '../../domain/entities/sync_conflict.dart';
 import '../../domain/entities/sync_result.dart';
+import 'i_sync_service.dart';
 
-@lazySingleton
-class SyncService {
+@LazySingleton(as: ISyncService)
+class SyncService implements ISyncService {
   final OutboxDao _outboxDao;
   final TaskDao _taskDao;
   final IRemoteTaskDataSource _remote;
@@ -21,13 +22,16 @@ class SyncService {
       StreamController<List<SyncConflict>>.broadcast();
   final List<SyncConflict> _conflicts = [];
 
+  @override
   Stream<List<SyncConflict>> get conflictsStream =>
       _conflictsController.stream;
+  @override
   List<SyncConflict> get conflicts => List.unmodifiable(_conflicts);
   bool get hasPendingConflicts => _conflicts.isNotEmpty;
 
   SyncService(this._outboxDao, this._taskDao, this._remote);
 
+  @override
   Future<void> sync() async {
     if (_isSyncing) return;
     _isSyncing = true;
@@ -69,6 +73,7 @@ class SyncService {
     await _outboxDao.setLastSyncAt(DateTime.now());
   }
 
+  @override
   Future<void> resolveConflict(
     SyncConflict conflict, {
     required bool keepLocal,

@@ -2,12 +2,12 @@ import 'dart:math';
 
 import 'package:injectable/injectable.dart';
 
-import '../entities/outbox_entry.dart';
-import '../entities/sync_conflict.dart';
-import '../entities/sync_result.dart';
+import '../../domain/entities/outbox_entry.dart';
+import '../../domain/entities/sync_conflict.dart';
+import '../../domain/entities/sync_result.dart';
 import 'i_remote_task_datasource.dart';
 
-@LazySingleton(as: IRemoteTaskDataSource)
+@LazySingleton(as: IRemoteTaskDataSource, env: [Environment.dev, Environment.test])
 class MockRemoteTaskDataSource implements IRemoteTaskDataSource {
   final _random = Random();
 

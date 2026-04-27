@@ -1,11 +1,11 @@
 import 'package:fpdart/fpdart.dart' hide Task;
-import 'package:polyops_assessment/domain/failure/failures.dart';
 
 import '../entities/board_task.dart';
 import '../entities/task.dart';
 import '../entities/task_status.dart';
 import '../entities/comment.dart';
 import '../entities/activity_entry.dart';
+import '../failures/failures.dart';
 
 abstract class ITaskRepository {
   Stream<List<BoardTask>> watchBoardTasksByStatus(TaskStatus status);

@@ -6,10 +6,6 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
 import 'package:fpdart/fpdart.dart' hide Task;
 import 'package:injectable/injectable.dart';
-import 'package:polyops_assessment/data/datasources/dtos/websocket_message_dto.dart';
-import 'package:polyops_assessment/data/remote/document_api_service.dart';
-import 'package:polyops_assessment/data/remote/document_websocket_service.dart';
-import 'package:polyops_assessment/domain/failure/failures.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/connectivity/connectivity_service.dart';
@@ -19,11 +15,13 @@ import '../../domain/entities/document_audit_entry.dart';
 import '../../domain/entities/document_type.dart';
 import '../../domain/entities/verification_document.dart';
 import '../../domain/entities/verification_status.dart';
-
+import '../../domain/failures/failures.dart';
 import '../../domain/repositories/i_document_repository.dart';
 import '../datasources/local/app_database.dart';
 import '../datasources/local/document_dao.dart';
-
+import '../datasources/remote/document_api_service.dart';
+import '../datasources/remote/document_websocket_service.dart';
+import '../dtos/websocket_message_dto.dart';
 
 @LazySingleton(as: IDocumentRepository)
 class DocumentRepository implements IDocumentRepository {

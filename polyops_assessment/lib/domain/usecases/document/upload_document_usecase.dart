@@ -1,8 +1,9 @@
 import 'package:fpdart/fpdart.dart' hide Task;
 import 'package:injectable/injectable.dart';
-import 'package:polyops_assessment/domain/failure/failures.dart';
+
 import '../../entities/document_type.dart';
 import '../../entities/verification_document.dart';
+import '../../failures/failures.dart';
 import '../../repositories/i_document_repository.dart';
 
 @injectable

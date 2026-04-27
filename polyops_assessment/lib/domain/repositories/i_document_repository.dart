@@ -1,11 +1,10 @@
 import 'package:fpdart/fpdart.dart' hide Task;
-import 'package:polyops_assessment/domain/failure/failures.dart';
 
 import '../entities/connectivity_status.dart';
 import '../entities/document_audit_entry.dart';
 import '../entities/document_type.dart';
 import '../entities/verification_document.dart';
-
+import '../failures/failures.dart';
 
 abstract class IDocumentRepository {
   Future<Either<Failure, VerificationDocument>> uploadDocument({
