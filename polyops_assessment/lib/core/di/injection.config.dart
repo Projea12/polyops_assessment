@@ -16,8 +16,6 @@ import 'package:polyops_assessment/core/auth/auth_token_provider.dart' as _i361;
 import 'package:polyops_assessment/core/connectivity/connectivity_service.dart'
     as _i534;
 import 'package:polyops_assessment/core/di/register_module.dart' as _i151;
-import 'package:polyops_assessment/core/sync/i_sync_service.dart' as _i298;
-import 'package:polyops_assessment/core/sync/sync_service.dart' as _i17;
 import 'package:polyops_assessment/core/utils/file_processing_service.dart'
     as _i1005;
 import 'package:polyops_assessment/data/datasources/local/app_database.dart'
@@ -42,10 +40,13 @@ import 'package:polyops_assessment/data/repositories/document_repository.dart'
     as _i923;
 import 'package:polyops_assessment/data/repositories/task_repository.dart'
     as _i765;
+import 'package:polyops_assessment/data/sync/sync_service.dart' as _i140;
 import 'package:polyops_assessment/domain/repositories/i_document_repository.dart'
     as _i147;
 import 'package:polyops_assessment/domain/repositories/i_task_repository.dart'
     as _i361;
+import 'package:polyops_assessment/domain/services/i_sync_service.dart'
+    as _i123;
 import 'package:polyops_assessment/domain/usecases/document/get_document_history_usecase.dart'
     as _i303;
 import 'package:polyops_assessment/domain/usecases/document/retry_verification_usecase.dart'
@@ -130,8 +131,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i361.ITaskRepository>(
       () => _i765.TaskRepository(gh<_i562.TaskDao>(), gh<_i690.OutboxDao>()),
     );
-    gh.lazySingleton<_i298.ISyncService>(
-      () => _i17.SyncService(
+    gh.lazySingleton<_i123.ISyncService>(
+      () => _i140.SyncService(
         gh<_i690.OutboxDao>(),
         gh<_i562.TaskDao>(),
         gh<_i652.IRemoteTaskDataSource>(),
@@ -162,7 +163,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i921.WatchDocumentUseCase>(
       () => _i921.WatchDocumentUseCase(gh<_i147.IDocumentRepository>()),
     );
-    gh.factory<_i293.SyncBloc>(() => _i293.SyncBloc(gh<_i298.ISyncService>()));
+    gh.factory<_i293.SyncBloc>(() => _i293.SyncBloc(gh<_i123.ISyncService>()));
     gh.factory<_i838.DocumentDetailBloc>(
       () => _i838.DocumentDetailBloc(
         gh<_i921.WatchDocumentUseCase>(),

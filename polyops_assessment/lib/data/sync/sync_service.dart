@@ -4,13 +4,13 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
-import '../../data/datasources/local/outbox_dao.dart';
-import '../../data/datasources/local/task_dao.dart';
-import '../../data/remote/i_remote_task_datasource.dart';
+import '../datasources/local/outbox_dao.dart';
+import '../datasources/local/task_dao.dart';
+import '../remote/i_remote_task_datasource.dart';
+import '../../core/connectivity/connectivity_service.dart';
 import '../../domain/entities/sync_conflict.dart';
 import '../../domain/entities/sync_result.dart';
-import '../connectivity/connectivity_service.dart';
-import 'i_sync_service.dart';
+import '../../domain/services/i_sync_service.dart';
 
 @LazySingleton(as: ISyncService)
 class SyncService implements ISyncService {

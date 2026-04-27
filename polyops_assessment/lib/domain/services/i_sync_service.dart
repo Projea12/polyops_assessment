@@ -1,4 +1,4 @@
-import '../../domain/entities/sync_conflict.dart';
+import '../entities/sync_conflict.dart';
 
 abstract interface class ISyncService {
   Stream<List<SyncConflict>> get conflictsStream;
