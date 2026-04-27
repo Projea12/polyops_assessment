@@ -11,6 +11,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:polyops_assessment/core/sync/sync_service.dart' as _i17;
 import 'package:polyops_assessment/data/datasources/local/app_database.dart'
     as _i788;
 import 'package:polyops_assessment/data/datasources/local/outbox_dao.dart'
@@ -54,6 +55,13 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i562.TaskDao>(
       () => _i562.TaskDao(gh<_i788.AppDatabase>()),
+    );
+    gh.lazySingleton<_i17.SyncService>(
+      () => _i17.SyncService(
+        gh<_i690.OutboxDao>(),
+        gh<_i562.TaskDao>(),
+        gh<_i652.IRemoteTaskDataSource>(),
+      ),
     );
     gh.lazySingleton<_i361.ITaskRepository>(
       () => _i765.TaskRepository(gh<_i562.TaskDao>(), gh<_i690.OutboxDao>()),
