@@ -29,6 +29,8 @@ dependencies:
   flutter_quill: ^11.5.0
   flutter_local_notifications: ^18.0.1
   timezone: ^0.10.1
+  connectivity_plus: ^6.1.4
+  flutter_image_compress: ^2.4.0
 
 
   cupertino_icons: ^1.0.8

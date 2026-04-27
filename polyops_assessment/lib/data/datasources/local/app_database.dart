@@ -72,14 +72,54 @@ class SyncMetaTable extends Table {
   Set<Column> get primaryKey => {key};
 }
 
+class DocumentAuditTable extends Table {
+  TextColumn get id => text()();
+  TextColumn get documentId => text()();
+  TextColumn get fromStatus => text()();
+  TextColumn get toStatus => text()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get timestamp => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class DocumentsTable extends Table {
+  TextColumn get id => text()();
+  TextColumn get type => text()(); // PASSPORT | NATIONAL_ID | UTILITY_BILL
+  TextColumn get status => text()(); // PENDING | PROCESSING | VERIFIED | REJECTED
+  RealColumn get progress => real().withDefault(const Constant(0.0))();
+  TextColumn get filePath => text()();
+  TextColumn get originalName => text()();
+  IntColumn get fileSize => integer()();
+  TextColumn get checksum => text()();
+  IntColumn get estimatedProcessingTime => integer().withDefault(const Constant(30))();
+  DateTimeColumn get uploadedAt => dateTime()();
+  DateTimeColumn get verifiedAt => dateTime().nullable()();
+  DateTimeColumn get expiresAt => dateTime().nullable()();
+  TextColumn get rejectionReason => text().nullable()();
+  TextColumn get currentStageJson => text().nullable()(); // JSON encoded VerificationStage
+  IntColumn get retryCount => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @singleton
-@DriftDatabase(
-    tables: [TasksTable, CommentsTable, ActivityEntriesTable, OutboxTable, SyncMetaTable])
+@DriftDatabase(tables: [
+  TasksTable,
+  CommentsTable,
+  ActivityEntriesTable,
+  OutboxTable,
+  SyncMetaTable,
+  DocumentsTable,
+  DocumentAuditTable,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -97,6 +137,12 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(outboxTable);
             await m.createTable(syncMetaTable);
+          }
+          if (from < 5) {
+            await m.createTable(documentsTable);
+          }
+          if (from < 6) {
+            await m.createTable(documentAuditTable);
           }
         },
         beforeOpen: (details) async {
