@@ -60,7 +60,7 @@ class _TaskCardState extends State<TaskCard>
     context.read<BoardBloc>().add(const DragEnded());
   }
 
-  void _onDraggableCanceled(Velocity _, Offset __) {
+  void _onDraggableCanceled(Velocity _, Offset _) {
     _cancelController.forward(from: 0);
     HapticFeedback.vibrate();
   }

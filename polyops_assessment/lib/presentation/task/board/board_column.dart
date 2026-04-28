@@ -7,89 +7,34 @@ import '../../../../domain/entities/board_task.dart';
 import '../../../../domain/entities/task_status.dart';
 import 'bloc/board_bloc.dart';
 
-class BoardColumn extends StatefulWidget {
+class BoardColumn extends StatelessWidget {
   final TaskStatus status;
   final List<BoardTask> tasks;
+
   const BoardColumn({
     super.key,
     required this.status,
     required this.tasks,
   });
 
-  @override
-  State<BoardColumn> createState() => _BoardColumnState();
-}
-
-class _BoardColumnState extends State<BoardColumn> {
-  final _scrollController = ScrollController();
-  bool _isAutoScrolling = false;
-
-  static const _edgeScrollThreshold = 80.0;
-  static const _edgeScrollSpeed = 300.0;
-
-  Color get _accentColor => switch (widget.status) {
+  Color get _accentColor => switch (status) {
         TaskStatus.todo => const Color(0xFF6366F1),
         TaskStatus.inProgress => const Color(0xFFF59E0B),
         TaskStatus.done => const Color(0xFF10B981),
       };
 
-  IconData get _icon => switch (widget.status) {
+  IconData get _icon => switch (status) {
         TaskStatus.todo => Icons.circle_outlined,
         TaskStatus.inProgress => Icons.timelapse_rounded,
         TaskStatus.done => Icons.check_circle_rounded,
       };
 
   @override
-  void dispose() {
-    _isAutoScrolling = false;
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (!_scrollController.hasClients) return;
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    final local = renderBox.globalToLocal(event.position);
-    final height = renderBox.size.height;
-
-    if (local.dy < _edgeScrollThreshold) {
-      _startAutoScroll(-_edgeScrollSpeed);
-    } else if (local.dy > height - _edgeScrollThreshold) {
-      _startAutoScroll(_edgeScrollSpeed);
-    } else {
-      _stopAutoScroll();
-    }
-  }
-
-  void _startAutoScroll(double speed) {
-    if (_isAutoScrolling) return;
-    _isAutoScrolling = true;
-    _autoScrollTick(speed);
-  }
-
-  void _autoScrollTick(double speed) {
-    if (!_isAutoScrolling || !_scrollController.hasClients) return;
-    final current = _scrollController.offset;
-    final target = (current + speed / 60).clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
-    _scrollController.jumpTo(target);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isAutoScrolling) _autoScrollTick(speed);
-    });
-  }
-
-  void _stopAutoScroll() {
-    _isAutoScrolling = false;
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final bloc = context.read<BoardBloc>();
     return BlocSelector<BoardBloc, BoardState, bool>(
       selector: (state) =>
-          state is BoardLoaded && state.dragOverColumn == widget.status,
+          state is BoardLoaded && state.dragOverColumn == status,
       builder: (context, isDragOver) => AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
@@ -119,54 +64,57 @@ class _BoardColumnState extends State<BoardColumn> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _ColumnHeader(
-                status: widget.status,
-                count: widget.tasks.length,
+                status: status,
+                count: tasks.length,
                 accentColor: _accentColor,
                 icon: _icon,
               ),
               Expanded(
                 child: DragTarget<TaskDragData>(
                   onWillAcceptWithDetails: (d) =>
-                      d.data.fromStatus != widget.status,
+                      d.data.fromStatus != status,
                   onAcceptWithDetails: (d) {
                     HapticFeedback.lightImpact();
-                    _stopAutoScroll();
-                    context.read<BoardBloc>().add(MoveTask(
-                          taskId: d.data.task.id,
-                          from: d.data.fromStatus,
-                          to: widget.status,
-                          newPosition: widget.tasks.length,
-                        ));
+                    bloc.stopAutoScroll(status);
+                    bloc.add(MoveTask(
+                      taskId: d.data.task.id,
+                      from: d.data.fromStatus,
+                      to: status,
+                      newPosition: tasks.length,
+                    ));
                   },
-                  onMove: (_) => context
-                      .read<BoardBloc>()
-                      .add(HoverColumn(status: widget.status)),
+                  onMove: (_) =>
+                      bloc.add(HoverColumn(status: status)),
                   onLeave: (_) {
-                    _stopAutoScroll();
-                    context
-                        .read<BoardBloc>()
-                        .add(const HoverColumn(status: null));
+                    bloc.stopAutoScroll(status);
+                    bloc.add(const HoverColumn(status: null));
                   },
                   builder: (context, _, _) => Listener(
-                    onPointerMove: _handlePointerMove,
-                    onPointerUp: (_) => _stopAutoScroll(),
-                    onPointerCancel: (_) => _stopAutoScroll(),
-                    child: widget.tasks.isEmpty
+                    onPointerMove: (event) {
+                      final renderBox =
+                          context.findRenderObject() as RenderBox?;
+                      bloc.handlePointerMove(
+                          status, event.position, renderBox);
+                    },
+                    onPointerUp: (_) => bloc.stopAutoScroll(status),
+                    onPointerCancel: (_) => bloc.stopAutoScroll(status),
+                    child: tasks.isEmpty
                         ? _EmptyState(
                             accentColor: _accentColor,
                             isDragOver: isDragOver,
                           )
                         : ListView.builder(
-                            controller: _scrollController,
+                            controller:
+                                bloc.scrollControllerFor(status),
                             padding:
                                 const EdgeInsets.fromLTRB(10, 8, 10, 80),
-                            itemCount: widget.tasks.length,
+                            itemCount: tasks.length,
                             itemBuilder: (context, index) {
-                              final task = widget.tasks[index];
+                              final task = tasks[index];
                               return TaskCard(
                                 key: ValueKey(task.id),
                                 task: task,
-                                fromStatus: widget.status,
+                                fromStatus: status,
                               );
                             },
                           ),

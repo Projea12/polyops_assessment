@@ -1,5 +1,6 @@
 import 'package:async/async.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
@@ -18,6 +19,16 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
   final WatchBoardTasksByStatusUseCase _watchBoardTasks;
   final MoveTaskUseCase _moveTask;
 
+  static const _edgeScrollThreshold = 80.0;
+  static const _edgeScrollSpeed = 300.0;
+
+  final Map<TaskStatus, ScrollController> _scrollControllers = {
+    for (final s in TaskStatus.values) s: ScrollController(),
+  };
+  final Map<TaskStatus, bool> _isAutoScrolling = {
+    for (final s in TaskStatus.values) s: false,
+  };
+
   BoardBloc(this._watchBoardTasks, this._moveTask)
       : super(const BoardState.initial()) {
     on<LoadBoard>(_onLoadBoard, transformer: restartable());
@@ -25,6 +36,59 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
     on<DragStarted>(_onDragStarted, transformer: droppable());
     on<DragEnded>(_onDragEnded, transformer: droppable());
     on<HoverColumn>(_onHoverColumn, transformer: droppable());
+  }
+
+  ScrollController scrollControllerFor(TaskStatus status) =>
+      _scrollControllers[status]!;
+
+  void handlePointerMove(
+    TaskStatus status,
+    Offset globalPosition,
+    RenderBox? renderBox,
+  ) {
+    final controller = _scrollControllers[status]!;
+    if (!controller.hasClients || renderBox == null) return;
+    final local = renderBox.globalToLocal(globalPosition);
+    final height = renderBox.size.height;
+    if (local.dy < _edgeScrollThreshold) {
+      _startAutoScroll(status, -_edgeScrollSpeed);
+    } else if (local.dy > height - _edgeScrollThreshold) {
+      _startAutoScroll(status, _edgeScrollSpeed);
+    } else {
+      stopAutoScroll(status);
+    }
+  }
+
+  void stopAutoScroll(TaskStatus status) {
+    _isAutoScrolling[status] = false;
+  }
+
+  void _startAutoScroll(TaskStatus status, double speed) {
+    if (_isAutoScrolling[status]!) return;
+    _isAutoScrolling[status] = true;
+    _autoScrollTick(status, speed);
+  }
+
+  void _autoScrollTick(TaskStatus status, double speed) {
+    if (!(_isAutoScrolling[status]!)) return;
+    final controller = _scrollControllers[status]!;
+    if (!controller.hasClients) return;
+    final target = (controller.offset + speed / 60).clamp(
+      0.0,
+      controller.position.maxScrollExtent,
+    );
+    controller.jumpTo(target);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoScrollTick(status, speed);
+    });
+  }
+
+  @override
+  Future<void> close() {
+    for (final c in _scrollControllers.values) {
+      c.dispose();
+    }
+    return super.close();
   }
 
   Future<void> _onLoadBoard(
