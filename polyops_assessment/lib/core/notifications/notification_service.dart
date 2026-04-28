@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
@@ -12,8 +15,15 @@ class NotificationService implements INotificationService {
   static const _channelId = 'task_reminders';
   static const _channelName = 'Task Reminders';
 
+  // Guards every public method — resolved only after channel + permissions are ready.
+  final _ready = Completer<void>();
+
   @PostConstruct()
-  void init() => _initialize();
+  void init() {
+    _initialize()
+        .then((_) => _ready.complete())
+        .catchError(_ready.completeError);
+  }
 
   Future<void> _initialize() async {
     const androidSettings =
@@ -29,6 +39,7 @@ class NotificationService implements INotificationService {
     final android = _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
+    // Channel must exist before any notification is scheduled on Android 8+.
     await android?.createNotificationChannel(const AndroidNotificationChannel(
       _channelId,
       _channelName,
@@ -36,6 +47,8 @@ class NotificationService implements INotificationService {
       importance: Importance.high,
     ));
     await android?.requestNotificationsPermission();
+    // Alarms & Reminders special permission required on Android 12+ for exact alarms.
+    await android?.requestExactAlarmsPermission();
   }
 
   @override
@@ -44,6 +57,7 @@ class NotificationService implements INotificationService {
     String title,
     DateTime dueDate,
   ) async {
+    await _ready.future; // wait for channel + permissions before scheduling
     if (dueDate.isBefore(DateTime.now())) return;
     try {
       await _plugin.zonedSchedule(
@@ -61,15 +75,18 @@ class NotificationService implements INotificationService {
           ),
           iOS: DarwinNotificationDetails(),
         ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('[NotificationService.schedule] $e\n$st');
+    }
   }
 
   @override
   Future<void> cancelTaskNotification(String taskId) async {
+    await _ready.future;
     try {
       await _plugin.cancel(_notificationId(taskId));
     } catch (_) {}
