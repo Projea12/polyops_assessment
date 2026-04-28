@@ -321,7 +321,9 @@ class _TaskDetailContentState extends State<_TaskDetailContent>
             });
           }
 
-          return Container(
+          return GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Container(
             constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.94),
             padding: EdgeInsets.only(bottom: bottom),
@@ -417,7 +419,7 @@ class _TaskDetailContentState extends State<_TaskDetailContent>
                 ),
               ],
             ),
-          );
+          ));
         },
       ),
     );
@@ -481,6 +483,9 @@ class _SheetHeader extends StatelessWidget {
                     maxLines: 3,
                     minLines: 1,
                     textCapitalization: TextCapitalization.sentences,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                    onTapOutside: (_) => FocusScope.of(context).unfocus(),
                     decoration: InputDecoration(
                       hintText: 'Task title *',
                       border: OutlineInputBorder(
@@ -868,68 +873,116 @@ class _DescriptionTab extends StatelessWidget {
   const _DescriptionTab(
       {required this.controller, required this.readOnly});
 
+  static const _toolbarConfig = QuillSimpleToolbarConfig(
+    showFontFamily: true,
+    showFontSize: true,
+    showBoldButton: true,
+    showItalicButton: true,
+    showUnderLineButton: true,
+    showStrikeThrough: false,
+    showInlineCode: false,
+    showColorButton: false,
+    showBackgroundColorButton: false,
+    showClearFormat: true,
+    showAlignmentButtons: false,
+    showLeftAlignment: false,
+    showCenterAlignment: false,
+    showRightAlignment: false,
+    showJustifyAlignment: false,
+    showHeaderStyle: false,
+    showListNumbers: true,
+    showListBullets: true,
+    showListCheck: false,
+    showCodeBlock: false,
+    showQuote: false,
+    showIndent: false,
+    showLink: false,
+    showUndo: true,
+    showRedo: true,
+    showSuperscript: false,
+    showSubscript: false,
+    showSmallButton: false,
+    showDividers: true,
+  );
+
+  Widget _wrapEditorTheme({required Widget child}) {
+    return DefaultTextStyle(
+      style: const TextStyle(
+        fontSize: 14,
+        color: Color(0xFF37474F),
+        height: 1.5,
+        fontFamily: null,
+      ),
+      child: child,
+    );
+  }
+
+  Widget _wrapToolbarTheme({required Widget child}) {
+    return Theme(
+      data: ThemeData(
+        colorScheme: const ColorScheme.light(primary: Color(0xFF1B5E37)),
+        iconTheme:
+            const IconThemeData(size: 20, color: Color(0xFF546E7A)),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            minimumSize: const Size(32, 32),
+            padding: const EdgeInsets.all(4),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (readOnly) {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: IgnorePointer(
-          child: QuillEditor.basic(
-            controller: controller,
-            config: const QuillEditorConfig(
-              expands: false,
-              padding: EdgeInsets.zero,
+          child: _wrapEditorTheme(
+            child: QuillEditor.basic(
+              controller: controller,
+              config: const QuillEditorConfig(
+                expands: false,
+                padding: EdgeInsets.zero,
+              ),
             ),
           ),
         ),
       );
     }
-    return Column(
-      children: [
-        QuillSimpleToolbar(
-          controller: controller,
-          config: const QuillSimpleToolbarConfig(
-            showBoldButton: true,
-            showItalicButton: true,
-            showUnderLineButton: true,
-            showStrikeThrough: false,
-            showInlineCode: false,
-            showColorButton: false,
-            showBackgroundColorButton: false,
-            showClearFormat: true,
-            showAlignmentButtons: false,
-            showLeftAlignment: false,
-            showCenterAlignment: false,
-            showRightAlignment: false,
-            showJustifyAlignment: false,
-            showHeaderStyle: false,
-            showListNumbers: true,
-            showListBullets: true,
-            showListCheck: false,
-            showCodeBlock: false,
-            showQuote: false,
-            showIndent: false,
-            showLink: false,
-            showUndo: true,
-            showRedo: true,
-            showSuperscript: false,
-            showSubscript: false,
-            showSmallButton: false,
-            showDividers: true,
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: QuillEditor.basic(
-            controller: controller,
-            config: const QuillEditorConfig(
-              placeholder: 'Add a description...',
-              padding: EdgeInsets.all(16),
-              expands: true,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _wrapToolbarTheme(
+            child: Container(
+              color: const Color(0xFFF8FAFC),
+              child: QuillSimpleToolbar(
+                controller: controller,
+                config: _toolbarConfig,
+              ),
             ),
           ),
-        ),
-      ],
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          _wrapEditorTheme(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 160, maxHeight: 400),
+              child: QuillEditor.basic(
+                controller: controller,
+                config: const QuillEditorConfig(
+                  placeholder: 'Add a description...',
+                  padding: EdgeInsets.all(16),
+                  expands: false,
+                  scrollable: true,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1284,10 +1337,17 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade100)),
+        border: Border(top: BorderSide(color: Colors.grey.shade200, width: 1.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, -3),
+          ),
+        ],
       ),
       child: Row(
         children: [

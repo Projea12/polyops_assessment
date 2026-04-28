@@ -112,7 +112,7 @@ class _BoardAppBar extends StatelessWidget {
                 ),
                 child: const Center(
                   child: Text(
-                    'S',
+                    'P',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -126,7 +126,7 @@ class _BoardAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'SWAMP_',
+                    'Polyops',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -135,7 +135,7 @@ class _BoardAppBar extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Smart Waste Management',
+                    'Polyops assessment',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.65),
                       fontSize: 11,

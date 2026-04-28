@@ -138,7 +138,6 @@ class _TaskFormContentState extends State<_TaskFormContent> {
           final isSubmitting = state is TaskFormSubmitting;
           return GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
-            behavior: HitTestBehavior.opaque,
             child: Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.92,
@@ -281,6 +280,38 @@ class _RichDescriptionField extends StatelessWidget {
   final QuillController controller;
   const _RichDescriptionField({required this.controller});
 
+  static const _toolbarConfig = QuillSimpleToolbarConfig(
+    showFontFamily: true,
+    showFontSize: true,
+    showBoldButton: true,
+    showItalicButton: true,
+    showUnderLineButton: true,
+    showStrikeThrough: false,
+    showInlineCode: false,
+    showColorButton: false,
+    showBackgroundColorButton: false,
+    showClearFormat: true,
+    showAlignmentButtons: false,
+    showLeftAlignment: false,
+    showCenterAlignment: false,
+    showRightAlignment: false,
+    showJustifyAlignment: false,
+    showHeaderStyle: false,
+    showListNumbers: true,
+    showListBullets: true,
+    showListCheck: false,
+    showCodeBlock: false,
+    showQuote: false,
+    showIndent: false,
+    showLink: false,
+    showUndo: true,
+    showRedo: true,
+    showSuperscript: false,
+    showSubscript: false,
+    showSmallButton: false,
+    showDividers: true,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -288,54 +319,70 @@ class _RichDescriptionField extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        children: [
-          QuillSimpleToolbar(
-            controller: controller,
-            config: const QuillSimpleToolbarConfig(
-              showBoldButton: true,
-              showItalicButton: true,
-              showUnderLineButton: true,
-              showStrikeThrough: false,
-              showInlineCode: false,
-              showColorButton: false,
-              showBackgroundColorButton: false,
-              showClearFormat: true,
-              showAlignmentButtons: false,
-              showLeftAlignment: false,
-              showCenterAlignment: false,
-              showRightAlignment: false,
-              showJustifyAlignment: false,
-              showHeaderStyle: false,
-              showListNumbers: true,
-              showListBullets: true,
-              showListCheck: false,
-              showCodeBlock: false,
-              showQuote: false,
-              showIndent: false,
-              showLink: false,
-              showUndo: true,
-              showRedo: true,
-              showSuperscript: false,
-              showSubscript: false,
-              showSmallButton: false,
-              showDividers: true,
-            ),
-          ),
-          const Divider(height: 1),
-          SizedBox(
-            height: 140,
-            child: QuillEditor.basic(
-              controller: controller,
-              config: const QuillEditorConfig(
-                placeholder: 'Add a description...',
-                padding: EdgeInsets.all(12),
-                expands: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          children: [
+            _quillToolbarTheme(
+              child: Container(
+                color: const Color(0xFFF8FAFC),
+                child: QuillSimpleToolbar(
+                  controller: controller,
+                  config: _toolbarConfig,
+                ),
               ),
             ),
-          ),
-        ],
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            _quillEditorTheme(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: 120,
+                  maxHeight: 320,
+                ),
+                child: QuillEditor.basic(
+                  controller: controller,
+                  config: const QuillEditorConfig(
+                    placeholder: 'Add a description...',
+                    padding: EdgeInsets.all(12),
+                    expands: false,
+                    scrollable: true,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _quillToolbarTheme({required Widget child}) {
+    return Theme(
+      data: ThemeData(
+        colorScheme: const ColorScheme.light(primary: Color(0xFF1B5E37)),
+        iconTheme:
+            const IconThemeData(size: 20, color: Color(0xFF546E7A)),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            minimumSize: const Size(32, 32),
+            padding: const EdgeInsets.all(4),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _quillEditorTheme({required Widget child}) {
+    return DefaultTextStyle(
+      style: const TextStyle(
+        fontSize: 14,
+        color: Color(0xFF37474F),
+        height: 1.5,
+        fontFamily: null,
+      ),
+      child: child,
     );
   }
 }
