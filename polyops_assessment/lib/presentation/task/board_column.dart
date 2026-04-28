@@ -23,7 +23,6 @@ class BoardColumn extends StatefulWidget {
 class _BoardColumnState extends State<BoardColumn> {
   final _scrollController = ScrollController();
   bool _isAutoScrolling = false;
-  bool _isDragOver = false;
 
   static const _edgeScrollThreshold = 80.0;
   static const _edgeScrollSpeed = 300.0;
@@ -88,72 +87,74 @@ class _BoardColumnState extends State<BoardColumn> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
-      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: _isDragOver
-            ? _accentColor.withValues(alpha: 0.04)
-            : const Color(0xFFF8FAFD),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: _isDragOver
-              ? _accentColor.withValues(alpha: 0.4)
-              : const Color(0xFFE8EEF4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-                alpha: _isDragOver ? 0.08 : 0.04),
-            blurRadius: _isDragOver ? 16 : 10,
-            offset: const Offset(0, 3),
+    return BlocSelector<BoardBloc, BoardState, bool>(
+      selector: (state) =>
+          state is BoardLoaded && state.dragOverColumn == widget.status,
+      builder: (context, isDragOver) => AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        decoration: BoxDecoration(
+          color: isDragOver
+              ? _accentColor.withValues(alpha: 0.04)
+              : const Color(0xFFF8FAFD),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDragOver
+                ? _accentColor.withValues(alpha: 0.4)
+                : const Color(0xFFE8EEF4),
+            width: 1.5,
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _ColumnHeader(
-              status: widget.status,
-              count: widget.tasks.length,
-              accentColor: _accentColor,
-              icon: _icon,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDragOver ? 0.08 : 0.04),
+              blurRadius: isDragOver ? 16 : 10,
+              offset: const Offset(0, 3),
             ),
-            Expanded(
-              child: DragTarget<TaskDragData>(
-                onWillAcceptWithDetails: (d) =>
-                    d.data.fromStatus != widget.status,
-                onAcceptWithDetails: (d) {
-                  HapticFeedback.lightImpact();
-                  _stopAutoScroll();
-                  setState(() => _isDragOver = false);
-                  context.read<BoardBloc>().add(MoveTask(
-                        taskId: d.data.task.id,
-                        from: d.data.fromStatus,
-                        to: widget.status,
-                        newPosition: widget.tasks.length,
-                      ));
-                },
-                onMove: (_) {
-                  if (!_isDragOver) setState(() => _isDragOver = true);
-                },
-                onLeave: (_) {
-                  _stopAutoScroll();
-                  setState(() => _isDragOver = false);
-                },
-                builder: (context, _, _) {
-                  return Listener(
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ColumnHeader(
+                status: widget.status,
+                count: widget.tasks.length,
+                accentColor: _accentColor,
+                icon: _icon,
+              ),
+              Expanded(
+                child: DragTarget<TaskDragData>(
+                  onWillAcceptWithDetails: (d) =>
+                      d.data.fromStatus != widget.status,
+                  onAcceptWithDetails: (d) {
+                    HapticFeedback.lightImpact();
+                    _stopAutoScroll();
+                    context.read<BoardBloc>().add(MoveTask(
+                          taskId: d.data.task.id,
+                          from: d.data.fromStatus,
+                          to: widget.status,
+                          newPosition: widget.tasks.length,
+                        ));
+                  },
+                  onMove: (_) => context
+                      .read<BoardBloc>()
+                      .add(HoverColumn(status: widget.status)),
+                  onLeave: (_) {
+                    _stopAutoScroll();
+                    context
+                        .read<BoardBloc>()
+                        .add(const HoverColumn(status: null));
+                  },
+                  builder: (context, _, _) => Listener(
                     onPointerMove: _handlePointerMove,
                     onPointerUp: (_) => _stopAutoScroll(),
                     onPointerCancel: (_) => _stopAutoScroll(),
                     child: widget.tasks.isEmpty
                         ? _EmptyState(
                             accentColor: _accentColor,
-                            isDragOver: _isDragOver,
+                            isDragOver: isDragOver,
                           )
                         : ListView.builder(
                             controller: _scrollController,
@@ -169,11 +170,11 @@ class _BoardColumnState extends State<BoardColumn> {
                               );
                             },
                           ),
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

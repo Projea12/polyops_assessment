@@ -22,6 +22,9 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
       : super(const BoardState.initial()) {
     on<LoadBoard>(_onLoadBoard, transformer: restartable());
     on<MoveTask>(_onMoveTask, transformer: sequential());
+    on<DragStarted>(_onDragStarted, transformer: droppable());
+    on<DragEnded>(_onDragEnded, transformer: droppable());
+    on<HoverColumn>(_onHoverColumn, transformer: droppable());
   }
 
   Future<void> _onLoadBoard(
@@ -83,6 +86,25 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
       (failure) => emit(current.copyWith(columns: previousColumns)),
       (_) {},
     );
+  }
+
+  void _onDragStarted(DragStarted event, Emitter<BoardState> emit) {
+    final current = state;
+    if (current is! BoardLoaded) return;
+    emit(current.copyWith(draggingTaskId: event.taskId));
+  }
+
+  void _onDragEnded(DragEnded event, Emitter<BoardState> emit) {
+    final current = state;
+    if (current is! BoardLoaded) return;
+    emit(current.copyWith(draggingTaskId: null, dragOverColumn: null));
+  }
+
+  void _onHoverColumn(HoverColumn event, Emitter<BoardState> emit) {
+    final current = state;
+    if (current is! BoardLoaded) return;
+    if (current.dragOverColumn == event.status) return;
+    emit(current.copyWith(dragOverColumn: event.status));
   }
 
   Map<TaskStatus, List<BoardTask>> _applyOptimisticMove(

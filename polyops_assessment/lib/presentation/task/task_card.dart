@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:polyops_assessment/presentation/task/task_detail_sheet.dart';
 
 import '../../../domain/entities/board_task.dart';
 import '../../../domain/entities/task_priority.dart';
 import '../../../domain/entities/task_status.dart';
+import 'bloc/board_bloc.dart';
 
 class TaskDragData {
   final BoardTask task;
@@ -31,8 +33,6 @@ class _TaskCardState extends State<TaskCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _cancelController;
   late final Animation<double> _scaleAnimation;
-  bool _isDragging = false;
-
   @override
   void initState() {
     super.initState();
@@ -53,13 +53,14 @@ class _TaskCardState extends State<TaskCard>
 
   void _onDragStarted() {
     HapticFeedback.mediumImpact();
-    setState(() => _isDragging = true);
+    context.read<BoardBloc>().add(DragStarted(taskId: widget.task.id));
   }
 
-  void _onDragEnd(DraggableDetails _) => setState(() => _isDragging = false);
+  void _onDragEnd(DraggableDetails _) {
+    context.read<BoardBloc>().add(const DragEnded());
+  }
 
-  void _onDraggableCanceled(Velocity _, Offset _) {
-    setState(() => _isDragging = false);
+  void _onDraggableCanceled(Velocity _, Offset __) {
     _cancelController.forward(from: 0);
     HapticFeedback.vibrate();
   }
@@ -67,34 +68,38 @@ class _TaskCardState extends State<TaskCard>
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 150),
-        opacity: _isDragging ? 0.2 : 1.0,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Stack(
-            children: [
-              LongPressDraggable<TaskDragData>(
-                delay: const Duration(milliseconds: 450),
-                data: TaskDragData(
-                    task: widget.task, fromStatus: widget.fromStatus),
-                onDragStarted: _onDragStarted,
-                onDragEnd: _onDragEnd,
-                onDraggableCanceled: _onDraggableCanceled,
-                feedback: _DragFeedback(task: widget.task),
-                childWhenDragging: const SizedBox.shrink(),
-                child: _CardBody(
-                  task: widget.task,
-                  onTap: () => TaskDetailSheet.show(context, widget.task.id),
+      child: BlocSelector<BoardBloc, BoardState, bool>(
+        selector: (state) =>
+            state is BoardLoaded && state.draggingTaskId == widget.task.id,
+        builder: (context, isDragging) => AnimatedOpacity(
+          duration: const Duration(milliseconds: 150),
+          opacity: isDragging ? 0.2 : 1.0,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Stack(
+              children: [
+                LongPressDraggable<TaskDragData>(
+                  delay: const Duration(milliseconds: 450),
+                  data: TaskDragData(
+                      task: widget.task, fromStatus: widget.fromStatus),
+                  onDragStarted: _onDragStarted,
+                  onDragEnd: _onDragEnd,
+                  onDraggableCanceled: _onDraggableCanceled,
+                  feedback: _DragFeedback(task: widget.task),
+                  childWhenDragging: const SizedBox.shrink(),
+                  child: _CardBody(
+                    task: widget.task,
+                    onTap: () => TaskDetailSheet.show(context, widget.task.id),
+                  ),
                 ),
-              ),
-              if (widget.task.isPending)
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: _SyncPendingDot(),
-                ),
-            ],
+                if (widget.task.isPending)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: _SyncPendingDot(),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

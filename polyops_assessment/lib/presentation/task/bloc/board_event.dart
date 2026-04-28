@@ -14,4 +14,8 @@ sealed class BoardEvent with _$BoardEvent {
     required TaskStatus to,
     required int newPosition,
   }) = MoveTask;
+
+  const factory BoardEvent.dragStarted({required String taskId}) = DragStarted;
+  const factory BoardEvent.dragEnded() = DragEnded;
+  const factory BoardEvent.hoverColumn({TaskStatus? status}) = HoverColumn;
 }
