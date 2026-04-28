@@ -3,6 +3,9 @@
 A Flutter application demonstrating clean architecture across two features: a Kanban task board with offline sync, and a KYC document verification pipeline with real-time WebSocket status updates.
 
 ---
+# App Preview
+[Demo](https://drive.google.com/file/d/1UNBZNteKmlTCb2hTIn82poEvCJKkeDV2/view?usp=drive_link)
+---
 
 ## Features
 
