@@ -239,7 +239,7 @@ These are the non-obvious boundaries that fail silently when violated:
 flutter test
 ```
 
-64 tests, all passing. No backend or platform channels required — tests run entirely on the Dart VM.
+77 tests, all passing. No backend or platform channels required — tests run entirely on the Dart VM.
 
 ### Run a specific suite
 
