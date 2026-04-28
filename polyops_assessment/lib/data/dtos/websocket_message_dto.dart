@@ -27,19 +27,25 @@ class WebSocketMessageDto {
             json['details'] as Map<String, dynamic>),
       );
 
-  VerificationDocument toDomain(VerificationDocument existing) =>
-      existing.copyWith(
-        status: VerificationStatus.fromApi(status),
-        // Progress must never go backwards
-        progress: progress > existing.progress ? progress : existing.progress,
-        isOptimistic: false,
-        optimisticSnapshot: null,
-        currentStage: VerificationStage(
-          stage: details.stage,
-          confidence: details.confidence,
-          issues: details.issues,
-        ),
-      );
+  VerificationDocument toDomain(VerificationDocument existing) {
+    final isRejected = status == 'REJECTED';
+    var doc = existing.copyWith(
+      status: VerificationStatus.fromApi(status),
+      // Progress must never go backwards
+      progress: progress > existing.progress ? progress : existing.progress,
+      isOptimistic: false,
+      optimisticSnapshot: null,
+      currentStage: VerificationStage(
+        stage: details.stage,
+        confidence: details.confidence,
+        issues: details.issues,
+      ),
+    );
+    if (isRejected && details.issues.isNotEmpty) {
+      doc = doc.copyWith(rejectionReason: details.issues.join('. '));
+    }
+    return doc;
+  }
 }
 
 class WebSocketDetailsDto {

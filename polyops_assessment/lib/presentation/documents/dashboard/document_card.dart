@@ -8,6 +8,12 @@ import '../../../domain/entities/verification_status.dart';
 import '../document_theme.dart';
 import '../detail/document_detail_sheet.dart';
 
+String _formatTimeRemaining(Duration d) {
+  if (d.inSeconds <= 0) return 'Almost done';
+  if (d.inSeconds < 60) return '~${d.inSeconds}s left';
+  return '~${d.inMinutes}m left';
+}
+
 class DocumentCard extends StatelessWidget {
   final VerificationDocument document;
   const DocumentCard({super.key, required this.document});
@@ -130,14 +136,23 @@ class DocumentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (doc.currentStage != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-                  child: Text(
-                    doc.currentStage!.stage,
-                    style: tt.labelSmall,
-                  ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+                child: Row(
+                  children: [
+                    if (doc.currentStage != null)
+                      Expanded(
+                        child: Text(doc.currentStage!.stage,
+                            style: tt.labelSmall),
+                      ),
+                    Text(
+                      _formatTimeRemaining(doc.estimatedTimeRemaining),
+                      style: tt.labelSmall
+                          ?.copyWith(color: statusColors.foreground),
+                    ),
+                  ],
                 ),
+              ),
             ],
 
             // Rejection reason

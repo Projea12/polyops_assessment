@@ -8,6 +8,12 @@ import '../../../domain/entities/verification_status.dart';
 import '../document_theme.dart';
 import 'bloc/document_detail_bloc.dart';
 
+String _formatTimeRemaining(Duration d) {
+  if (d.inSeconds <= 0) return 'Almost done';
+  if (d.inSeconds < 60) return '~${d.inSeconds}s left';
+  return '~${d.inMinutes}m left';
+}
+
 class DocumentDetailSheet extends StatelessWidget {
   final String documentId;
   const DocumentDetailSheet._({required this.documentId});
@@ -199,11 +205,11 @@ class _LoadedView extends StatelessWidget {
                 ],
               ),
             ),
-            if (doc.currentStage != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
-                child: Row(
-                  children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+              child: Row(
+                children: [
+                  if (doc.currentStage != null) ...[
                     SizedBox(
                       width: 12,
                       height: 12,
@@ -215,12 +221,21 @@ class _LoadedView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(doc.currentStage!.stage,
-                        style:
-                            tt.bodyMedium?.copyWith(color: ext.textMuted)),
-                  ],
-                ),
+                    Expanded(
+                      child: Text(doc.currentStage!.stage,
+                          style: tt.bodyMedium
+                              ?.copyWith(color: ext.textMuted)),
+                    ),
+                  ] else
+                    const Spacer(),
+                  Text(
+                    _formatTimeRemaining(doc.estimatedTimeRemaining),
+                    style: tt.labelMedium
+                        ?.copyWith(color: statusColors.foreground),
+                  ),
+                ],
               ),
+            ),
             const SizedBox(height: 12),
           ],
 
