@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/services/i_notification_service.dart';
+@pragma('vm:entry-point')
+void onBackgroundNotification(NotificationResponse response) {}
 
 @LazySingleton(as: INotificationService)
 class NotificationService implements INotificationService {
@@ -35,6 +37,8 @@ class NotificationService implements INotificationService {
     );
     await _plugin.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      onDidReceiveNotificationResponse: (_) {},
+      onDidReceiveBackgroundNotificationResponse: onBackgroundNotification,
     );
     final android = _plugin
         .resolvePlatformSpecificImplementation<

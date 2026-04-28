@@ -10,7 +10,6 @@ import 'core/theme/app_theme.dart';
 import 'presentation/documents/dashboard/document_dashboard_screen.dart';
 import 'presentation/sync/bloc/sync_bloc.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();

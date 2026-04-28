@@ -136,7 +136,10 @@ class _TaskFormContentState extends State<_TaskFormContent> {
       child: BlocBuilder<TaskFormBloc, TaskFormState>(
         builder: (context, state) {
           final isSubmitting = state is TaskFormSubmitting;
-          return Container(
+          return GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.92,
             ),
@@ -199,7 +202,7 @@ class _TaskFormContentState extends State<_TaskFormContent> {
                 ),
               ],
             ),
-          );
+          ));
         },
       ),
     );
@@ -256,6 +259,9 @@ class _TitleField extends StatelessWidget {
       focusNode: focusNode,
       autofocus: true,
       textCapitalization: TextCapitalization.sentences,
+      textInputAction: TextInputAction.done,
+      onTapOutside: (_) => FocusScope.of(context).unfocus(),
+      onSubmitted: (_) => FocusScope.of(context).unfocus(),
       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: 'Title *',
