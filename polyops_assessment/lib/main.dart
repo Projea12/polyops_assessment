@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:polyops_assessment/presentation/task/board_screen.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 import 'core/di/injection.dart';
 import 'core/observer/app_bloc_observer.dart';
+import 'core/theme/app_theme.dart';
 import 'presentation/documents/dashboard/document_dashboard_screen.dart';
 import 'presentation/sync/bloc/sync_bloc.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  tz.initializeTimeZones();
   await configureDependencies();
   Bloc.observer = AppBlocObserver();
   runApp(const Polysops());
@@ -29,13 +32,7 @@ class Polysops extends StatelessWidget {
         localizationsDelegates: const [
           FlutterQuillLocalizations.delegate,
         ],
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1B5E37),
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.light,
         home: const _AppShell(),
       ),
     );
@@ -64,19 +61,15 @@ class _AppShellState extends State<_AppShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFDCFCE7),
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard_rounded,
-                color: Color(0xFF1B5E37)),
+            selectedIcon: Icon(Icons.dashboard_rounded),
             label: 'Board',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.shield_outlined),
-            selectedIcon: Icon(Icons.shield_rounded,
-                color: Color(0xFF1B5E37)),
+            selectedIcon: Icon(Icons.shield_rounded),
             label: 'KYC Docs',
           ),
         ],

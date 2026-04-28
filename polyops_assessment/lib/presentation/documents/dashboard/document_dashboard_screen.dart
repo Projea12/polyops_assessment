@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme_extension.dart';
 import '../../../domain/entities/verification_status.dart';
 import '../bloc/document_bloc.dart';
-import '../document_theme.dart';
 import '../upload/document_upload_sheet.dart';
 import 'connectivity_banner.dart';
 import 'document_card.dart';
@@ -27,8 +28,11 @@ class _DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ext = AppThemeExtension.of(context);
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: ext.appBackground,
       body: BlocListener<DocumentBloc, DocumentState>(
         listenWhen: (prev, curr) =>
             prev is DocumentLoaded &&
@@ -38,9 +42,9 @@ class _DashboardView extends StatelessWidget {
           if (state is! DocumentLoaded) return;
           if (state.uploadStatus == DocumentUploadStatus.success) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Document uploaded successfully'),
-                backgroundColor: Color(0xFF059669),
+              SnackBar(
+                content: const Text('Document uploaded successfully'),
+                backgroundColor: ext.statusVerifiedDark,
               ),
             );
             context
@@ -49,9 +53,8 @@ class _DashboardView extends StatelessWidget {
           } else if (state.uploadStatus == DocumentUploadStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content:
-                    Text(state.uploadError ?? 'Upload failed'),
-                backgroundColor: const Color(0xFFEF4444),
+                content: Text(state.uploadError ?? 'Upload failed'),
+                backgroundColor: cs.error,
               ),
             );
             context
@@ -66,12 +69,10 @@ class _DashboardView extends StatelessWidget {
               buildWhen: (prev, curr) =>
                   curr is DocumentLoaded &&
                   (prev is! DocumentLoaded ||
-                      prev.connectivityStatus !=
-                          curr.connectivityStatus),
+                      prev.connectivityStatus != curr.connectivityStatus),
               builder: (context, state) {
                 if (state is! DocumentLoaded) return const SizedBox.shrink();
-                return ConnectivityBanner(
-                    status: state.connectivityStatus);
+                return ConnectivityBanner(status: state.connectivityStatus);
               },
             ),
             Expanded(
@@ -79,14 +80,14 @@ class _DashboardView extends StatelessWidget {
                 builder: (context, state) => switch (state) {
                   DocumentInitial() ||
                   DocumentLoading() =>
-                    const Center(
+                    Center(
                       child: CircularProgressIndicator(
-                          color: kGreen, strokeWidth: 2.5),
+                          color: Theme.of(context).colorScheme.primary,
+                          strokeWidth: 2.5),
                     ),
                   DocumentError(:final message) =>
                     _ErrorView(message: message),
-                  DocumentLoaded(:final documents)
-                      when documents.isEmpty =>
+                  DocumentLoaded(:final documents) when documents.isEmpty =>
                     const _EmptyState(),
                   DocumentLoaded(:final documents) => ListView.builder(
                       padding: const EdgeInsets.only(top: 16, bottom: 100),
@@ -109,13 +110,12 @@ class _DashboardView extends StatelessWidget {
           if (state is! DocumentLoaded) return const SizedBox.shrink();
           final uploading =
               state.uploadStatus == DocumentUploadStatus.uploading;
+          final cs = Theme.of(context).colorScheme;
+          final ext = AppThemeExtension.of(context);
           return FloatingActionButton.extended(
-            onPressed: uploading
-                ? null
-                : () => DocumentUploadSheet.show(context),
-            backgroundColor: uploading
-                ? const Color(0xFF6B7280)
-                : kGreen,
+            onPressed: uploading ? null : () => DocumentUploadSheet.show(context),
+            backgroundColor:
+                uploading ? ext.textSecondary : cs.primary,
             elevation: 3,
             icon: uploading
                 ? const SizedBox(
@@ -137,7 +137,7 @@ class _DashboardView extends StatelessWidget {
   }
 }
 
-// ── App bar ───────────────────────────────────────────────────────────────────
+// ── Header ────────────────────────────────────────────────────────────────────
 
 class _DashboardHeader extends StatelessWidget {
   const _DashboardHeader();
@@ -145,11 +145,14 @@ class _DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final cs = Theme.of(context).colorScheme;
+    final ext = AppThemeExtension.of(context);
+
     return Container(
       padding: EdgeInsets.fromLTRB(20, top + 14, 20, 20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [kGreen, kGreenLight],
+          colors: [cs.primary, ext.brandGreenMid],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -165,8 +168,8 @@ class _DashboardHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.2)),
                 ),
                 child: const Center(
                   child: Icon(Icons.shield_rounded,
@@ -177,21 +180,19 @@ class _DashboardHeader extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'KYC Verification',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
                   ),
                   Text(
                     'Document verification dashboard',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.65),
-                      fontSize: 11,
-                    ),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.65),
+                        ),
                   ),
                 ],
               ),
@@ -201,14 +202,11 @@ class _DashboardHeader extends StatelessWidget {
           BlocBuilder<DocumentBloc, DocumentState>(
             buildWhen: (prev, curr) => curr is DocumentLoaded,
             builder: (context, state) {
-              if (state is! DocumentLoaded) {
-                return const SizedBox.shrink();
-              }
+              if (state is! DocumentLoaded) return const SizedBox.shrink();
               final docs = state.documents;
               final total = docs.length;
               final verified = docs
-                  .where((d) =>
-                      d.status == VerificationStatus.verified)
+                  .where((d) => d.status == VerificationStatus.verified)
                   .length;
               final pending = docs
                   .where((d) =>
@@ -216,8 +214,7 @@ class _DashboardHeader extends StatelessWidget {
                       d.status == VerificationStatus.processing)
                   .length;
               final rejected = docs
-                  .where((d) =>
-                      d.status == VerificationStatus.rejected)
+                  .where((d) => d.status == VerificationStatus.rejected)
                   .length;
 
               return SingleChildScrollView(
@@ -235,14 +232,14 @@ class _DashboardHeader extends StatelessWidget {
                       icon: Icons.verified_rounded,
                       label: 'Verified',
                       value: verified,
-                      color: const Color(0xFF6EE7B7),
+                      color: AppColors.chipVerified,
                     ),
                     const SizedBox(width: 8),
                     _StatChip(
                       icon: Icons.timelapse_rounded,
                       label: 'Pending',
                       value: pending,
-                      color: const Color(0xFFFBBF24),
+                      color: AppColors.chipPending,
                     ),
                     if (rejected > 0) ...[
                       const SizedBox(width: 8),
@@ -250,7 +247,7 @@ class _DashboardHeader extends StatelessWidget {
                         icon: Icons.cancel_outlined,
                         label: 'Rejected',
                         value: rejected,
-                        color: const Color(0xFFFCA5A5),
+                        color: AppColors.chipRejected,
                       ),
                     ],
                   ],
@@ -293,11 +290,10 @@ class _StatChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '$value $label',
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: color,
+                  fontSize: 12,
+                ),
           ),
         ],
       ),
@@ -312,6 +308,9 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -330,23 +329,18 @@ class _EmptyState extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.upload_file_rounded,
-                size: 32, color: kGreen),
+            child: Icon(Icons.upload_file_rounded,
+                size: 32, color: cs.primary),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'No documents yet',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF111827),
-            ),
-          ),
+          Text('No documents yet',
+              style: tt.titleMedium?.copyWith(fontSize: 17)),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Tap Upload Document to submit\nyour first KYC document.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+            style: tt.bodyMedium
+                ?.copyWith(color: AppThemeExtension.of(context).textSecondary),
           ),
         ],
       ),
@@ -362,6 +356,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -370,26 +367,20 @@ class _ErrorView extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.red.shade50,
+              color: cs.errorContainer,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.error_outline_rounded,
-                size: 32, color: Colors.red.shade400),
+                size: 32, color: cs.error),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Something went wrong',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF111827),
-            ),
-          ),
+          Text('Something went wrong',
+              style: tt.titleMedium?.copyWith(fontSize: 16)),
           const SizedBox(height: 6),
           Text(
             message,
-            style: const TextStyle(
-                color: Color(0xFF6B7280), fontSize: 13),
+            style: tt.bodyMedium?.copyWith(
+                color: AppThemeExtension.of(context).textSecondary),
             textAlign: TextAlign.center,
           ),
         ],

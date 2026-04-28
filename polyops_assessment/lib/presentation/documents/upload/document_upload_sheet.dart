@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/theme/app_theme_extension.dart';
 import '../../../domain/entities/document_type.dart';
 import '../bloc/document_bloc.dart';
 import '../document_theme.dart';
@@ -40,8 +41,7 @@ class _UploadContentState extends State<_UploadContent> {
   String? _selectedName;
   int? _selectedSize;
 
-  bool get _canUpload =>
-      _selectedType != null && _selectedPath != null;
+  bool get _canUpload => _selectedType != null && _selectedPath != null;
 
   Future<void> _pickFromGallery() async {
     final picker = ImagePicker();
@@ -101,6 +101,9 @@ class _UploadContentState extends State<_UploadContent> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
 
     return BlocListener<DocumentBloc, DocumentState>(
       listenWhen: (prev, curr) =>
@@ -130,40 +133,31 @@ class _UploadContentState extends State<_UploadContent> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: ext.borderLight,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
 
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
-              child: Text(
-                'Upload Document',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF111827),
-                ),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+              child: Text('Upload Document', style: tt.headlineMedium),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: Text(
                 'Select document type and choose a file.',
-                style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+                style: tt.bodyMedium?.copyWith(color: ext.textSecondary),
               ),
             ),
 
             // Document type selector
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 10),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
               child: Text(
                 'DOCUMENT TYPE',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF9CA3AF),
+                style: tt.labelMedium?.copyWith(
+                  color: ext.textTertiary,
                   letterSpacing: 0.8,
                 ),
               ),
@@ -174,7 +168,8 @@ class _UploadContentState extends State<_UploadContent> {
                 children: DocumentType.values
                     .map((type) => Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4),
                             child: _TypeChip(
                               type: type,
                               selected: _selectedType == type,
@@ -188,14 +183,12 @@ class _UploadContentState extends State<_UploadContent> {
             ),
 
             // File source
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 10),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
               child: Text(
                 'SELECT FILE',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF9CA3AF),
+                style: tt.labelMedium?.copyWith(
+                  color: ext.textTertiary,
                   letterSpacing: 0.8,
                 ),
               ),
@@ -232,14 +225,14 @@ class _UploadContentState extends State<_UploadContent> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
+                  color: ext.brandGreenSurface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFBBF7D0)),
+                  border: Border.all(color: ext.brandGreenBorder),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.insert_drive_file_rounded,
-                        size: 18, color: kGreen),
+                    Icon(Icons.insert_drive_file_rounded,
+                        size: 18, color: cs.primary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -247,19 +240,15 @@ class _UploadContentState extends State<_UploadContent> {
                         children: [
                           Text(
                             _selectedName ?? 'Selected file',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF111827),
-                            ),
+                            style: tt.bodyLarge,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (_selectedSize != null)
                             Text(
                               '${(_selectedSize! / 1024).toStringAsFixed(1)} KB',
-                              style: const TextStyle(
-                                  fontSize: 11, color: Color(0xFF6B7280)),
+                              style: tt.labelSmall
+                                  ?.copyWith(color: ext.textSecondary),
                             ),
                         ],
                       ),
@@ -270,8 +259,8 @@ class _UploadContentState extends State<_UploadContent> {
                         _selectedName = null;
                         _selectedSize = null;
                       }),
-                      child: const Icon(Icons.close_rounded,
-                          size: 16, color: Color(0xFF9CA3AF)),
+                      child: Icon(Icons.close_rounded,
+                          size: 16, color: ext.textTertiary),
                     ),
                   ],
                 ),
@@ -284,17 +273,20 @@ class _UploadContentState extends State<_UploadContent> {
                     state.uploadStatus == DocumentUploadStatus.uploading;
                 return Padding(
                   padding: EdgeInsets.fromLTRB(
-                      16, 20, 16, 20 + MediaQuery.of(context).padding.bottom),
+                      16,
+                      20,
+                      16,
+                      20 + MediaQuery.of(context).padding.bottom),
                   child: SizedBox(
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed:
-                          (_canUpload && !uploading) ? () => _submit(context) : null,
+                      onPressed: (_canUpload && !uploading)
+                          ? () => _submit(context)
+                          : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: kGreen,
-                        disabledBackgroundColor:
-                            const Color(0xFFE5E7EB),
+                        backgroundColor: cs.primary,
+                        disabledBackgroundColor: ext.borderLight,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -307,13 +299,10 @@ class _UploadContentState extends State<_UploadContent> {
                               child: CircularProgressIndicator(
                                   color: Colors.white, strokeWidth: 2.5),
                             )
-                          : const Text(
+                          : Text(
                               'Upload Document',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: tt.titleMedium
+                                  ?.copyWith(color: Colors.white),
                             ),
                     ),
                   ),
@@ -340,16 +329,20 @@ class _TypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? kGreen : const Color(0xFFF9FAFB),
+          color: selected ? cs.primary : ext.surfaceSubtle,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? kGreen : const Color(0xFFE5E7EB),
+            color: selected ? cs.primary : ext.borderLight,
           ),
         ),
         child: Column(
@@ -357,16 +350,15 @@ class _TypeChip extends StatelessWidget {
             Icon(
               documentTypeIcon(type),
               size: 22,
-              color: selected ? Colors.white : const Color(0xFF6B7280),
+              color: selected ? Colors.white : ext.textSecondary,
             ),
             const SizedBox(height: 6),
             Text(
               type.label,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11,
+              style: tt.labelMedium?.copyWith(
+                color: selected ? Colors.white : ext.textMuted,
                 fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : const Color(0xFF374151),
               ),
             ),
           ],
@@ -389,27 +381,26 @@ class _SourceButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFFF9FAFB),
+            color: ext.surfaceSubtle,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
+            border: Border.all(color: ext.borderLight),
           ),
           child: Column(
             children: [
-              Icon(icon, size: 22, color: const Color(0xFF374151)),
+              Icon(icon, size: 22, color: ext.textMuted),
               const SizedBox(height: 6),
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151),
-                ),
+                style: tt.labelLarge?.copyWith(color: ext.textMuted),
               ),
             ],
           ),

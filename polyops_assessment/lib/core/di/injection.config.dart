@@ -16,6 +16,8 @@ import 'package:polyops_assessment/core/auth/auth_token_provider.dart' as _i361;
 import 'package:polyops_assessment/core/connectivity/connectivity_service.dart'
     as _i534;
 import 'package:polyops_assessment/core/di/register_module.dart' as _i151;
+import 'package:polyops_assessment/core/notifications/notification_service.dart'
+    as _i981;
 import 'package:polyops_assessment/core/utils/file_processing_service.dart'
     as _i1005;
 import 'package:polyops_assessment/data/datasources/local/app_database.dart'
@@ -45,6 +47,8 @@ import 'package:polyops_assessment/domain/repositories/i_document_repository.dar
     as _i147;
 import 'package:polyops_assessment/domain/repositories/i_task_repository.dart'
     as _i361;
+import 'package:polyops_assessment/domain/services/i_notification_service.dart'
+    as _i1039;
 import 'package:polyops_assessment/domain/services/i_sync_service.dart'
     as _i123;
 import 'package:polyops_assessment/domain/usecases/document/get_document_history_usecase.dart'
@@ -102,6 +106,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1005.FileProcessingService(),
     );
     gh.lazySingleton<_i788.AppDatabase>(() => _i788.AppDatabase());
+    gh.lazySingleton<_i1039.INotificationService>(
+      () => _i981.NotificationService()..init(),
+    );
     gh.lazySingleton<_i652.IRemoteTaskDataSource>(
       () => _i969.MockRemoteTaskDataSource(),
       registerFor: {_dev, _test},
@@ -129,46 +136,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i534.ConnectivityService(gh<_i895.Connectivity>())..init(),
     );
     gh.lazySingleton<_i361.ITaskRepository>(
-      () => _i765.TaskRepository(gh<_i562.TaskDao>(), gh<_i690.OutboxDao>()),
-    );
-    gh.lazySingleton<_i123.ISyncService>(
-      () => _i140.SyncService(
-        gh<_i690.OutboxDao>(),
+      () => _i765.TaskRepository(
         gh<_i562.TaskDao>(),
-        gh<_i652.IRemoteTaskDataSource>(),
-        gh<_i534.ConnectivityService>(),
-      )..init(),
-    );
-    gh.lazySingleton<_i147.IDocumentRepository>(
-      () => _i923.DocumentRepository(
-        gh<_i146.DocumentDao>(),
-        gh<_i392.DocumentApiService>(),
-        gh<_i749.DocumentWebSocketService>(),
-        gh<_i534.ConnectivityService>(),
-        gh<_i1005.FileProcessingService>(),
-      )..init(),
-    );
-    gh.lazySingleton<_i303.GetDocumentHistoryUseCase>(
-      () => _i303.GetDocumentHistoryUseCase(gh<_i147.IDocumentRepository>()),
-    );
-    gh.lazySingleton<_i180.RetryVerificationUseCase>(
-      () => _i180.RetryVerificationUseCase(gh<_i147.IDocumentRepository>()),
-    );
-    gh.lazySingleton<_i881.UploadDocumentUseCase>(
-      () => _i881.UploadDocumentUseCase(gh<_i147.IDocumentRepository>()),
-    );
-    gh.lazySingleton<_i512.WatchAuditTrailUseCase>(
-      () => _i512.WatchAuditTrailUseCase(gh<_i147.IDocumentRepository>()),
-    );
-    gh.lazySingleton<_i921.WatchDocumentUseCase>(
-      () => _i921.WatchDocumentUseCase(gh<_i147.IDocumentRepository>()),
-    );
-    gh.factory<_i293.SyncBloc>(() => _i293.SyncBloc(gh<_i123.ISyncService>()));
-    gh.factory<_i838.DocumentDetailBloc>(
-      () => _i838.DocumentDetailBloc(
-        gh<_i921.WatchDocumentUseCase>(),
-        gh<_i512.WatchAuditTrailUseCase>(),
-        gh<_i180.RetryVerificationUseCase>(),
+        gh<_i690.OutboxDao>(),
+        gh<_i1039.INotificationService>(),
       ),
     );
     gh.lazySingleton<_i294.AddCommentUseCase>(
@@ -192,12 +163,22 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i506.WatchTaskUseCase>(
       () => _i506.WatchTaskUseCase(gh<_i361.ITaskRepository>()),
     );
-    gh.factory<_i761.DocumentBloc>(
-      () => _i761.DocumentBloc(
-        gh<_i921.WatchDocumentUseCase>(),
-        gh<_i881.UploadDocumentUseCase>(),
-        gh<_i147.IDocumentRepository>(),
-      ),
+    gh.lazySingleton<_i123.ISyncService>(
+      () => _i140.SyncService(
+        gh<_i690.OutboxDao>(),
+        gh<_i562.TaskDao>(),
+        gh<_i652.IRemoteTaskDataSource>(),
+        gh<_i534.ConnectivityService>(),
+      )..init(),
+    );
+    gh.lazySingleton<_i147.IDocumentRepository>(
+      () => _i923.DocumentRepository(
+        gh<_i146.DocumentDao>(),
+        gh<_i392.DocumentApiService>(),
+        gh<_i749.DocumentWebSocketService>(),
+        gh<_i534.ConnectivityService>(),
+        gh<_i1005.FileProcessingService>(),
+      )..init(),
     );
     gh.factory<_i899.TaskDetailBloc>(
       () => _i899.TaskDetailBloc(
@@ -207,13 +188,43 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i294.AddCommentUseCase>(),
       ),
     );
+    gh.lazySingleton<_i303.GetDocumentHistoryUseCase>(
+      () => _i303.GetDocumentHistoryUseCase(gh<_i147.IDocumentRepository>()),
+    );
+    gh.lazySingleton<_i180.RetryVerificationUseCase>(
+      () => _i180.RetryVerificationUseCase(gh<_i147.IDocumentRepository>()),
+    );
+    gh.lazySingleton<_i881.UploadDocumentUseCase>(
+      () => _i881.UploadDocumentUseCase(gh<_i147.IDocumentRepository>()),
+    );
+    gh.lazySingleton<_i512.WatchAuditTrailUseCase>(
+      () => _i512.WatchAuditTrailUseCase(gh<_i147.IDocumentRepository>()),
+    );
+    gh.lazySingleton<_i921.WatchDocumentUseCase>(
+      () => _i921.WatchDocumentUseCase(gh<_i147.IDocumentRepository>()),
+    );
     gh.factory<_i807.TaskFormBloc>(
       () => _i807.TaskFormBloc(gh<_i1.CreateTaskUseCase>()),
+    );
+    gh.factory<_i293.SyncBloc>(() => _i293.SyncBloc(gh<_i123.ISyncService>()));
+    gh.factory<_i838.DocumentDetailBloc>(
+      () => _i838.DocumentDetailBloc(
+        gh<_i921.WatchDocumentUseCase>(),
+        gh<_i512.WatchAuditTrailUseCase>(),
+        gh<_i180.RetryVerificationUseCase>(),
+      ),
     );
     gh.factory<_i276.BoardBloc>(
       () => _i276.BoardBloc(
         gh<_i84.WatchBoardTasksByStatusUseCase>(),
         gh<_i1065.MoveTaskUseCase>(),
+      ),
+    );
+    gh.factory<_i761.DocumentBloc>(
+      () => _i761.DocumentBloc(
+        gh<_i921.WatchDocumentUseCase>(),
+        gh<_i881.UploadDocumentUseCase>(),
+        gh<_i147.IDocumentRepository>(),
       ),
     );
     return this;

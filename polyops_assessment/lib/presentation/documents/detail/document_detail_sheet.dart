@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/theme/app_theme_extension.dart';
 import '../../../domain/entities/verification_status.dart';
 import '../document_theme.dart';
 import 'bloc/document_detail_bloc.dart';
@@ -36,6 +37,8 @@ class _DetailContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final ext = AppThemeExtension.of(context);
+
     return Container(
       height: screenHeight * 0.88,
       decoration: const BoxDecoration(
@@ -44,14 +47,13 @@ class _DetailContent extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Drag handle
           Center(
             child: Container(
               margin: const EdgeInsets.only(top: 12, bottom: 16),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: ext.borderLight,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -66,20 +68,22 @@ class _DetailContent extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.retryError!),
-                      backgroundColor: const Color(0xFFEF4444),
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ),
                   );
                 }
               },
               builder: (context, state) => switch (state) {
-                DocumentDetailInitial() ||
-                DocumentDetailLoading() =>
-                  const Center(
-                    child: CircularProgressIndicator(color: kGreen),
+                DocumentDetailInitial() || DocumentDetailLoading() => Center(
+                    child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 DocumentDetailError(:final message) => Center(
                     child: Text(message,
-                        style: const TextStyle(color: Color(0xFF6B7280))),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: ext.textSecondary)),
                   ),
                 DocumentDetailLoaded() => _LoadedView(state: state),
               },
@@ -98,8 +102,10 @@ class _LoadedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final doc = state.document;
-    final color = statusColor(doc.status);
-    final bg = statusBackground(doc.status);
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final statusColors = ext.statusColorsFor(doc.status);
 
     return DefaultTabController(
       length: 2,
@@ -115,29 +121,21 @@ class _LoadedView extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDF2FB),
+                    color: ext.appBackground,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(documentTypeIcon(doc.type),
-                      color: kGreen, size: 24),
+                      color: cs.primary, size: 24),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        doc.type.label,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF111827),
-                        ),
-                      ),
+                      Text(doc.type.label, style: tt.titleLarge),
                       Text(
                         doc.originalName,
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF6B7280)),
+                        style: tt.bodySmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -148,21 +146,19 @@ class _LoadedView extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: bg,
+                    color: statusColors.background,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(statusIcon(doc.status), size: 13, color: color),
+                      Icon(statusIcon(doc.status),
+                          size: 13, color: statusColors.foreground),
                       const SizedBox(width: 5),
                       Text(
                         doc.status.label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
+                        style: tt.labelLarge
+                            ?.copyWith(color: statusColors.foreground),
                       ),
                     ],
                   ),
@@ -187,8 +183,9 @@ class _LoadedView extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: value,
                           minHeight: 8,
-                          backgroundColor: const Color(0xFFE5E7EB),
-                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                          backgroundColor: ext.borderLight,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              statusColors.foreground),
                         ),
                       ),
                     ),
@@ -196,11 +193,8 @@ class _LoadedView extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     '${(doc.progress * 100).round()}%',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
+                    style: tt.titleSmall
+                        ?.copyWith(color: statusColors.foreground),
                   ),
                 ],
               ),
@@ -210,31 +204,34 @@ class _LoadedView extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
                 child: Row(
                   children: [
-                    const SizedBox(
+                    SizedBox(
                       width: 12,
                       height: 12,
                       child: CircularProgressIndicator(
-                          strokeWidth: 1.5, color: Color(0xFF3B82F6)),
+                        strokeWidth: 1.5,
+                        color: ext.statusColorsFor(
+                                VerificationStatus.processing)
+                            .foreground,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      doc.currentStage!.stage,
-                      style: const TextStyle(
-                          fontSize: 13, color: Color(0xFF374151)),
-                    ),
+                    Text(doc.currentStage!.stage,
+                        style:
+                            tt.bodyMedium?.copyWith(color: ext.textMuted)),
                   ],
                 ),
               ),
             const SizedBox(height: 12),
           ],
 
-          // Rejection reason + retry
+          // Rejection box
           if (doc.status == VerificationStatus.rejected) ...[
             Container(
               margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
+                color: ext.statusColorsFor(VerificationStatus.rejected)
+                    .background,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFFECACA)),
               ),
@@ -245,16 +242,14 @@ class _LoadedView extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.error_outline_rounded,
-                            size: 16, color: Color(0xFFEF4444)),
+                        Icon(Icons.error_outline_rounded,
+                            size: 16, color: cs.error),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             doc.rejectionReason!,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF991B1B),
-                            ),
+                            style: tt.bodyMedium
+                                ?.copyWith(color: const Color(0xFF991B1B)),
                           ),
                         ),
                       ],
@@ -272,7 +267,7 @@ class _LoadedView extends StatelessWidget {
                                   DocumentDetailEvent.retryRequested(doc.id),
                                 ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEF4444),
+                          backgroundColor: cs.error,
                           disabledBackgroundColor: const Color(0xFFFECACA),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -291,9 +286,8 @@ class _LoadedView extends StatelessWidget {
                         label: Text(
                           state.isRetrying ? 'Retrying…' : 'Retry Verification',
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700),
                         ),
                       ),
                     ),
@@ -302,38 +296,34 @@ class _LoadedView extends StatelessWidget {
             ),
           ],
 
-          // Verified info
+          // Verified banner
           if (doc.status == VerificationStatus.verified &&
               doc.verifiedAt != null)
             Container(
               margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5),
+                color: ext.statusColorsFor(VerificationStatus.verified)
+                    .background,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFA7F3D0)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.verified_rounded,
-                      size: 20, color: Color(0xFF059669)),
+                  Icon(Icons.verified_rounded,
+                      size: 20, color: ext.statusVerifiedDark),
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Verified',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF065F46),
-                        ),
-                      ),
+                      Text('Verified',
+                          style: tt.bodyLarge?.copyWith(
+                              color: const Color(0xFF065F46))),
                       if (doc.expiresAt != null)
                         Text(
                           'Expires ${DateFormat('MMM d, y').format(doc.expiresAt!)}',
-                          style: const TextStyle(
-                              fontSize: 11, color: Color(0xFF059669)),
+                          style: tt.labelSmall
+                              ?.copyWith(color: ext.statusVerifiedDark),
                         ),
                     ],
                   ),
@@ -342,14 +332,13 @@ class _LoadedView extends StatelessWidget {
             ),
 
           // Tabs
-          const TabBar(
-            labelColor: kGreen,
-            unselectedLabelColor: Color(0xFF9CA3AF),
-            indicatorColor: kGreen,
+          TabBar(
+            labelColor: cs.primary,
+            unselectedLabelColor: ext.textTertiary,
+            indicatorColor: cs.primary,
             indicatorSize: TabBarIndicatorSize.label,
-            labelStyle:
-                TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: [
+            labelStyle: tt.bodyLarge,
+            tabs: const [
               Tab(text: 'Details'),
               Tab(text: 'Audit Trail'),
             ],
@@ -377,10 +366,7 @@ class _DetailsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        _DetailRow(
-          label: 'File name',
-          value: doc.originalName,
-        ),
+        _DetailRow(label: 'File name', value: doc.originalName),
         _DetailRow(
           label: 'File size',
           value: '${(doc.fileSize / 1024).toStringAsFixed(1)} KB',
@@ -391,14 +377,8 @@ class _DetailsTab extends StatelessWidget {
         ),
         if (doc.retryCount > 0)
           _DetailRow(
-            label: 'Retry count',
-            value: doc.retryCount.toString(),
-          ),
-        _DetailRow(
-          label: 'Document ID',
-          value: doc.id,
-          mono: true,
-        ),
+              label: 'Retry count', value: doc.retryCount.toString()),
+        _DetailRow(label: 'Document ID', value: doc.id, mono: true),
       ],
     );
   }
@@ -417,6 +397,9 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -424,21 +407,15 @@ class _DetailRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF9CA3AF),
-                  fontWeight: FontWeight.w500),
-            ),
+            child: Text(label,
+                style: tt.bodySmall?.copyWith(
+                    color: ext.textTertiary,
+                    fontWeight: FontWeight.w500)),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                fontSize: 13,
-                color: const Color(0xFF111827),
-                fontWeight: FontWeight.w600,
+              style: tt.bodyLarge?.copyWith(
                 fontFamily: mono ? 'monospace' : null,
               ),
             ),
@@ -455,27 +432,30 @@ class _AuditTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+
     if (entries.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No audit entries yet.',
-            style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13)),
+            style: tt.bodyMedium?.copyWith(color: ext.textTertiary)),
       );
     }
 
     return ListView.separated(
       padding: const EdgeInsets.all(20),
       itemCount: entries.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 0),
+      separatorBuilder: (_, i) => const SizedBox.shrink(),
       itemBuilder: (_, index) {
         final entry = entries[index];
         final isLast = index == entries.length - 1;
-        final toColor = statusColor(entry.toStatus);
+        final toColor =
+            ext.statusColorsFor(entry.toStatus).foreground;
 
         return IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Timeline spine
               SizedBox(
                 width: 28,
                 child: Column(
@@ -494,7 +474,7 @@ class _AuditTab extends StatelessWidget {
                         child: Container(
                           width: 1.5,
                           margin: const EdgeInsets.symmetric(vertical: 4),
-                          color: const Color(0xFFE5E7EB),
+                          color: ext.borderLight,
                         ),
                       ),
                     if (isLast) const SizedBox(height: 8),
@@ -508,32 +488,21 @@ class _AuditTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            '${entry.fromStatus.label} → ${entry.toStatus.label}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF111827),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '${entry.fromStatus.label} → ${entry.toStatus.label}',
+                        style: tt.bodyLarge,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         DateFormat('MMM d, y · HH:mm:ss')
                             .format(entry.timestamp),
-                        style: const TextStyle(
-                            fontSize: 11, color: Color(0xFF9CA3AF)),
+                        style: tt.labelSmall,
                       ),
                       if (entry.note != null) ...[
                         const SizedBox(height: 4),
-                        Text(
-                          entry.note!,
-                          style: const TextStyle(
-                              fontSize: 12, color: Color(0xFF6B7280)),
-                        ),
+                        Text(entry.note!,
+                            style: tt.bodySmall
+                                ?.copyWith(color: ext.textSecondary)),
                       ],
                     ],
                   ),

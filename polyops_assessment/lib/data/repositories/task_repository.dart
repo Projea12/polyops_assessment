@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -16,6 +17,7 @@ import '../../domain/entities/task_status.dart';
 import '../../domain/failures/failures.dart';
 import '../../domain/entities/outbox_entry.dart';
 import '../../domain/repositories/i_task_repository.dart';
+import '../../domain/services/i_notification_service.dart';
 import '../datasources/local/app_database.dart';
 import '../datasources/local/outbox_dao.dart';
 import '../datasources/local/task_dao.dart';
@@ -24,13 +26,14 @@ import '../datasources/local/task_dao.dart';
 class TaskRepository implements ITaskRepository {
   final TaskDao _dao;
   final OutboxDao _outboxDao;
+  final INotificationService _notifications;
   final _uuid = const Uuid();
 
   static const _currentUserId = 'user_01';
   static const _currentUserName = 'John';
   static const _clientId = 'client_01';
 
-  TaskRepository(this._dao, this._outboxDao);
+  TaskRepository(this._dao, this._outboxDao, this._notifications);
 
   OutboxTableCompanion _outbox(
     String taskId,
@@ -148,6 +151,9 @@ class TaskRepository implements ITaskRepository {
       });
 
       final row = await _dao.getTask(id);
+      if (dueDate != null) {
+        unawaited(_notifications.scheduleTaskDueNotification(id, title, dueDate));
+      }
       return right(_mapToTask(row!, [], []));
     } catch (e, st) {
       debugPrint('[TaskRepository.createTask] $e\n$st');
@@ -195,6 +201,10 @@ class TaskRepository implements ITaskRepository {
       final updated = await _dao.getTask(task.id);
       final comments = await _dao.getCommentsForTask(task.id);
       final activity = await _dao.getActivityForTask(task.id);
+      unawaited(_notifications.cancelTaskNotification(task.id));
+      if (task.dueDate != null && task.status != TaskStatus.done) {
+        unawaited(_notifications.scheduleTaskDueNotification(task.id, task.title, task.dueDate!));
+      }
       return right(_mapToTask(updated!, comments, activity));
     } catch (e, st) {
       debugPrint('[TaskRepository.updateTask] $e\n$st');
@@ -234,6 +244,11 @@ class TaskRepository implements ITaskRepository {
       final updated = await _dao.getTask(taskId);
       final comments = await _dao.getCommentsForTask(taskId);
       final activity = await _dao.getActivityForTask(taskId);
+      if (to == TaskStatus.done) {
+        unawaited(_notifications.cancelTaskNotification(taskId));
+      } else if (from == TaskStatus.done && updated!.dueDate != null) {
+        unawaited(_notifications.scheduleTaskDueNotification(taskId, updated.title, updated.dueDate!));
+      }
       return right(_mapToTask(updated!, comments, activity));
     } catch (e, st) {
       debugPrint('[TaskRepository.moveTask] $e\n$st');
@@ -251,6 +266,7 @@ class TaskRepository implements ITaskRepository {
         await _dao.deleteCommentsForTask(id);
         await _dao.deleteTask(id);
       });
+      unawaited(_notifications.cancelTaskNotification(id));
       return right(unit);
     } catch (e, st) {
       debugPrint('[TaskRepository.deleteTask] $e\n$st');

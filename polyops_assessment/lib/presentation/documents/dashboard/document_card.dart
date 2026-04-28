@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme_extension.dart';
 import '../../../domain/entities/verification_document.dart';
 import '../../../domain/entities/verification_status.dart';
 import '../document_theme.dart';
@@ -13,8 +15,9 @@ class DocumentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final doc = document;
-    final color = statusColor(doc.status);
-    final bg = statusBackground(doc.status);
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+    final statusColors = ext.statusColorsFor(doc.status);
 
     return GestureDetector(
       onTap: () => DocumentDetailSheet.show(context, doc.id),
@@ -39,17 +42,16 @@ class DocumentCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Type icon
                   Container(
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEDF2FB),
+                      color: ext.appBackground,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       documentTypeIcon(doc.type),
-                      color: kGreen,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 22,
                     ),
                   ),
@@ -58,21 +60,11 @@ class DocumentCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          doc.type.label,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
+                        Text(doc.type.label, style: tt.titleMedium),
                         const SizedBox(height: 2),
                         Text(
                           doc.originalName,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF6B7280),
-                          ),
+                          style: tt.bodySmall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -85,21 +77,19 @@ class DocumentCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: bg,
+                      color: statusColors.background,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(statusIcon(doc.status), size: 11, color: color),
+                        Icon(statusIcon(doc.status),
+                            size: 11, color: statusColors.foreground),
                         const SizedBox(width: 4),
                         Text(
                           doc.status.label,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: color,
-                          ),
+                          style: tt.labelMedium
+                              ?.copyWith(color: statusColors.foreground),
                         ),
                       ],
                     ),
@@ -124,9 +114,9 @@ class DocumentCard extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: value,
                             minHeight: 4,
-                            backgroundColor:
-                                const Color(0xFFE5E7EB),
-                            valueColor: AlwaysStoppedAnimation<Color>(color),
+                            backgroundColor: ext.borderLight,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                statusColors.foreground),
                           ),
                         ),
                       ),
@@ -134,11 +124,8 @@ class DocumentCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(
                       '${(doc.progress * 100).round()}%',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
+                      style: tt.labelMedium
+                          ?.copyWith(color: statusColors.foreground),
                     ),
                   ],
                 ),
@@ -148,8 +135,7 @@ class DocumentCard extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
                   child: Text(
                     doc.currentStage!.stage,
-                    style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF9CA3AF)),
+                    style: tt.labelSmall,
                   ),
                 ),
             ],
@@ -161,16 +147,14 @@ class DocumentCard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        size: 12, color: Color(0xFFEF4444)),
+                    Icon(Icons.info_outline_rounded,
+                        size: 12, color: statusColors.foreground),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         doc.rejectionReason!,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFFEF4444),
-                        ),
+                        style:
+                            tt.labelSmall?.copyWith(color: statusColors.foreground),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -186,8 +170,7 @@ class DocumentCard extends StatelessWidget {
                 children: [
                   Text(
                     DateFormat('MMM d, y').format(doc.uploadedAt),
-                    style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF9CA3AF)),
+                    style: tt.labelSmall,
                   ),
                   if (doc.retryCount > 0) ...[
                     const SizedBox(width: 8),
@@ -195,15 +178,15 @@ class DocumentCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
+                        color: ext.surfaceSubtle,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         'Retry ${doc.retryCount}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Color(0xFF6B7280),
+                        style: tt.labelSmall?.copyWith(
+                          color: ext.textSecondary,
                           fontWeight: FontWeight.w600,
+                          fontSize: 10,
                         ),
                       ),
                     ),
@@ -213,7 +196,7 @@ class DocumentCard extends StatelessWidget {
                     const _OptimisticChip()
                   else
                     Icon(Icons.chevron_right_rounded,
-                        size: 18, color: Colors.grey.shade300),
+                        size: 18, color: AppColors.borderLight),
                 ],
               ),
             ),
@@ -229,14 +212,18 @@ class _OptimisticChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ext = AppThemeExtension.of(context);
+    final tt = Theme.of(context).textTheme;
+    final pendingColors = ext.statusColorsFor(VerificationStatus.pending);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
+        color: pendingColors.background,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFFED7AA)),
+        border: Border.all(color: AppColors.statusPendingBorder),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
@@ -244,16 +231,16 @@ class _OptimisticChip extends StatelessWidget {
             height: 8,
             child: CircularProgressIndicator(
               strokeWidth: 1.5,
-              color: Color(0xFFF97316),
+              color: pendingColors.foreground,
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Text(
             'Uploading',
-            style: TextStyle(
-              fontSize: 10,
-              color: Color(0xFFF97316),
+            style: tt.labelSmall?.copyWith(
+              color: pendingColors.foreground,
               fontWeight: FontWeight.w600,
+              fontSize: 10,
             ),
           ),
         ],
