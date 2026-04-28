@@ -39,6 +39,6 @@ class DocumentUploadResponseDto {
         fileSize: fileSize,
         uploadedAt: uploadedAt,
         estimatedProcessingTime: estimatedProcessingTime,
-        isOptimistic: true,
+        isOptimistic: false,
       );
 }

@@ -40,17 +40,22 @@ class _UploadContentState extends State<_UploadContent> {
   String? _selectedPath;
   String? _selectedName;
   int? _selectedSize;
+  String? _selectedSource; // 'gallery' | 'camera' | 'pdf'
 
   bool get _canUpload => _selectedType != null && _selectedPath != null;
 
   Future<void> _pickFromGallery() async {
+    setState(() => _selectedSource = 'gallery');
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 2048,
       maxHeight: 2048,
     );
-    if (image == null) return;
+    if (image == null) {
+      setState(() => _selectedSource = null);
+      return;
+    }
     final bytes = await image.readAsBytes();
     setState(() {
       _selectedPath = image.path;
@@ -60,13 +65,17 @@ class _UploadContentState extends State<_UploadContent> {
   }
 
   Future<void> _pickFromCamera() async {
+    setState(() => _selectedSource = 'camera');
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.camera,
       maxWidth: 2048,
       maxHeight: 2048,
     );
-    if (image == null) return;
+    if (image == null) {
+      setState(() => _selectedSource = null);
+      return;
+    }
     final bytes = await image.readAsBytes();
     setState(() {
       _selectedPath = image.path;
@@ -76,13 +85,20 @@ class _UploadContentState extends State<_UploadContent> {
   }
 
   Future<void> _pickPdf() async {
+    setState(() => _selectedSource = 'pdf');
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
-    if (result == null || result.files.isEmpty) return;
+    if (result == null || result.files.isEmpty) {
+      setState(() => _selectedSource = null);
+      return;
+    }
     final file = result.files.first;
-    if (file.path == null) return;
+    if (file.path == null) {
+      setState(() => _selectedSource = null);
+      return;
+    }
     setState(() {
       _selectedPath = file.path;
       _selectedName = file.name;
@@ -200,18 +216,21 @@ class _UploadContentState extends State<_UploadContent> {
                   _SourceButton(
                     icon: Icons.photo_library_rounded,
                     label: 'Gallery',
+                    selected: _selectedSource == 'gallery',
                     onTap: _pickFromGallery,
                   ),
                   const SizedBox(width: 8),
                   _SourceButton(
                     icon: Icons.camera_alt_rounded,
                     label: 'Camera',
+                    selected: _selectedSource == 'camera',
                     onTap: _pickFromCamera,
                   ),
                   const SizedBox(width: 8),
                   _SourceButton(
                     icon: Icons.picture_as_pdf_rounded,
                     label: 'PDF',
+                    selected: _selectedSource == 'pdf',
                     onTap: _pickPdf,
                   ),
                 ],
@@ -258,6 +277,7 @@ class _UploadContentState extends State<_UploadContent> {
                         _selectedPath = null;
                         _selectedName = null;
                         _selectedSize = null;
+                        _selectedSource = null;
                       }),
                       child: Icon(Icons.close_rounded,
                           size: 16, color: ext.textTertiary),
@@ -371,36 +391,46 @@ class _TypeChip extends StatelessWidget {
 class _SourceButton extends StatelessWidget {
   final IconData icon;
   final String label;
+  final bool selected;
   final VoidCallback onTap;
 
   const _SourceButton({
     required this.icon,
     required this.label,
+    required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final ext = AppThemeExtension.of(context);
     final tt = Theme.of(context).textTheme;
 
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: ext.surfaceSubtle,
+            color: selected ? cs.primary : ext.surfaceSubtle,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: ext.borderLight),
+            border: Border.all(
+              color: selected ? cs.primary : ext.borderLight,
+            ),
           ),
           child: Column(
             children: [
-              Icon(icon, size: 22, color: ext.textMuted),
+              Icon(icon, size: 22,
+                  color: selected ? Colors.white : ext.textMuted),
               const SizedBox(height: 6),
               Text(
                 label,
-                style: tt.labelLarge?.copyWith(color: ext.textMuted),
+                style: tt.labelLarge?.copyWith(
+                  color: selected ? Colors.white : ext.textMuted,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                ),
               ),
             ],
           ),

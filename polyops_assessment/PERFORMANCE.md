@@ -130,7 +130,6 @@ Benchmark: Cold start → first meaningful frame < 2s on the floor device. If co
 
 Surface 3: Rendering — lowest business priority, but visible.
 
-The primary rendering problem is rebuild frequency, not render cost. The BlocBuilder at board_screen.dart:61 has no buildWhen, so every drag pointer event that produces a BoardLoaded rebuilds all three columns. The setState(() => _isDragOver = true) at board_column.dart:132 repaints the full AnimatedContainer on every pointer move.
 
 Tool: DevTools Widget Rebuild Stats. Frame duration alone won't reveal this — a 12ms frame with 3 unnecessary column rebuilds per pointer event looks "acceptable" on the timeline but is wasting budget that a low-end device doesn't have.
 

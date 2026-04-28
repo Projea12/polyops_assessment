@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:polyops_assessment/presentation/task/board_screen.dart';
 import 'package:timezone/data/latest.dart' as tz;
-
 import 'core/di/injection.dart';
 import 'core/observer/app_bloc_observer.dart';
 import 'core/theme/app_theme.dart';
@@ -45,7 +44,7 @@ class _AppShell extends StatefulWidget {
   State<_AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<_AppShell> {
+class _AppShellState extends State<_AppShell> with WidgetsBindingObserver {
   int _index = 0;
 
   static const _screens = [
@@ -54,24 +53,58 @@ class _AppShellState extends State<_AppShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<SyncBloc>().add(const SyncTriggered());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard_rounded),
-            label: 'Board',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.shield_outlined),
-            selectedIcon: Icon(Icons.shield_rounded),
-            label: 'KYC Docs',
-          ),
-        ],
+      bottomNavigationBar: BlocBuilder<SyncBloc, SyncState>(
+        buildWhen: (prev, curr) =>
+            prev.conflicts.length != curr.conflicts.length,
+        builder: (context, syncState) {
+          final conflictCount = syncState.conflicts.length;
+          return NavigationBar(
+            selectedIndex: _index,
+            onDestinationSelected: (i) => setState(() => _index = i),
+            destinations: [
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: conflictCount > 0,
+                  label: Text('$conflictCount'),
+                  child: const Icon(Icons.dashboard_outlined),
+                ),
+                selectedIcon: Badge(
+                  isLabelVisible: conflictCount > 0,
+                  label: Text('$conflictCount'),
+                  child: const Icon(Icons.dashboard_rounded),
+                ),
+                label: 'Board',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.shield_outlined),
+                selectedIcon: Icon(Icons.shield_rounded),
+                label: 'KYC Docs',
+              ),
+            ],
+          );
+        },
       ),
     );
   }

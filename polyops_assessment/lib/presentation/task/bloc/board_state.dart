@@ -12,8 +12,6 @@ sealed class BoardState with _$BoardState {
 
   const factory BoardState.loaded({
     required Map<TaskStatus, List<BoardTask>> columns,
-    String? draggingTaskId,
-    TaskStatus? dragOverColumn,
   }) = BoardLoaded;
 
   const factory BoardState.error(String message) = BoardError;
@@ -21,5 +19,4 @@ sealed class BoardState with _$BoardState {
 
 extension BoardLoadedX on BoardLoaded {
   List<BoardTask> tasksFor(TaskStatus status) => columns[status] ?? [];
-  bool get hasDraggingTask => draggingTaskId != null;
 }

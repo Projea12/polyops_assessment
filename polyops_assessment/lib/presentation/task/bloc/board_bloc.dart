@@ -70,8 +70,6 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
 
     emit(current.copyWith(
       columns: _applyOptimisticMove(current.columns, event),
-      draggingTaskId: null,
-      dragOverColumn: null,
     ));
 
     final result = await _moveTask(
