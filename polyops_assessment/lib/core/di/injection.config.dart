@@ -40,11 +40,15 @@ import 'package:polyops_assessment/data/remote/remote_task_datasource.dart'
     as _i318;
 import 'package:polyops_assessment/data/repositories/document_repository.dart'
     as _i923;
+import 'package:polyops_assessment/data/repositories/file_picker_repository.dart'
+    as _i228;
 import 'package:polyops_assessment/data/repositories/task_repository.dart'
     as _i765;
 import 'package:polyops_assessment/data/sync/sync_service.dart' as _i140;
 import 'package:polyops_assessment/domain/repositories/i_document_repository.dart'
     as _i147;
+import 'package:polyops_assessment/domain/repositories/i_file_picker_repository.dart'
+    as _i627;
 import 'package:polyops_assessment/domain/repositories/i_task_repository.dart'
     as _i361;
 import 'package:polyops_assessment/domain/services/i_notification_service.dart'
@@ -53,6 +57,8 @@ import 'package:polyops_assessment/domain/services/i_sync_service.dart'
     as _i123;
 import 'package:polyops_assessment/domain/usecases/document/get_document_history_usecase.dart'
     as _i303;
+import 'package:polyops_assessment/domain/usecases/document/pick_document_file_usecase.dart'
+    as _i923;
 import 'package:polyops_assessment/domain/usecases/document/retry_verification_usecase.dart'
     as _i180;
 import 'package:polyops_assessment/domain/usecases/document/upload_document_usecase.dart'
@@ -81,11 +87,11 @@ import 'package:polyops_assessment/presentation/documents/detail/bloc/document_d
     as _i838;
 import 'package:polyops_assessment/presentation/sync/bloc/sync_bloc.dart'
     as _i293;
-import 'package:polyops_assessment/presentation/task/bloc/board_bloc.dart'
+import 'package:polyops_assessment/presentation/task/board/bloc/board_bloc.dart'
     as _i276;
-import 'package:polyops_assessment/presentation/task/bloc/task_detail_bloc.dart'
+import 'package:polyops_assessment/presentation/task/task_detail/task_detail_bloc/task_detail_bloc.dart'
     as _i899;
-import 'package:polyops_assessment/presentation/task/bloc/task_form_bloc.dart'
+import 'package:polyops_assessment/presentation/task/task_form/task_form_bloc/task_form_bloc.dart'
     as _i807;
 
 const String _dev = 'dev';
@@ -122,6 +128,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i562.TaskDao>(
       () => _i562.TaskDao(gh<_i788.AppDatabase>()),
     );
+    gh.lazySingleton<_i627.IFilePickerRepository>(
+      () => _i228.FilePickerRepository(),
+    );
     gh.lazySingleton<_i652.IRemoteTaskDataSource>(
       () => _i318.RemoteTaskDataSource(gh<_i361.AuthTokenProvider>()),
       registerFor: {_prod},
@@ -141,6 +150,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i690.OutboxDao>(),
         gh<_i1039.INotificationService>(),
       ),
+    );
+    gh.lazySingleton<_i923.PickDocumentFileUseCase>(
+      () => _i923.PickDocumentFileUseCase(gh<_i627.IFilePickerRepository>()),
     );
     gh.lazySingleton<_i294.AddCommentUseCase>(
       () => _i294.AddCommentUseCase(gh<_i361.ITaskRepository>()),
@@ -225,6 +237,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i921.WatchDocumentUseCase>(),
         gh<_i881.UploadDocumentUseCase>(),
         gh<_i147.IDocumentRepository>(),
+        gh<_i923.PickDocumentFileUseCase>(),
       ),
     );
     return this;

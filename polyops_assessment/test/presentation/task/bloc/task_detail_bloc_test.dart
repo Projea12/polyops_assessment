@@ -2,7 +2,9 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart' hide Task;
 import 'package:mocktail/mocktail.dart';
-import 'package:polyops_assessment/presentation/task/bloc/task_detail_bloc.dart';
+import 'package:polyops_assessment/domain/entities/task_priority.dart';
+import 'package:polyops_assessment/domain/entities/task_status.dart';
+import 'package:polyops_assessment/presentation/task/task_detail/task_detail_bloc/task_detail_bloc.dart';
 
 import '../../../helpers/test_helpers.dart';
 
@@ -213,6 +215,123 @@ void main() {
         const TaskDetailCommentSubmitted(taskId: 'task-1', content: 'Hello'),
       ),
       expect: () => <TaskDetailState>[],
+    );
+  });
+
+  group('TaskDetailEditEntered', () {
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'does nothing when state is not TaskDetailLoaded',
+      build: makeBloc,
+      act: (bloc) => bloc.add(const TaskDetailEditEntered()),
+      expect: () => <TaskDetailState>[],
+    );
+
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'sets isEditing=true and seeds draft fields from task',
+      build: makeBloc,
+      seed: () => TaskDetailLoaded(
+        task: makeTask(
+          priority: TaskPriority.high,
+          status: TaskStatus.inProgress,
+          dueDate: DateTime(2025, 6, 1),
+        ),
+      ),
+      act: (bloc) => bloc.add(const TaskDetailEditEntered()),
+      expect: () => [
+        isA<TaskDetailLoaded>()
+            .having((s) => s.isEditing, 'isEditing', isTrue)
+            .having((s) => s.draftPriority, 'draftPriority', TaskPriority.high)
+            .having((s) => s.draftStatus, 'draftStatus', TaskStatus.inProgress)
+            .having((s) => s.draftDueDate, 'draftDueDate', DateTime(2025, 6, 1)),
+      ],
+    );
+  });
+
+  group('TaskDetailEditCancelled', () {
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'does nothing when state is not TaskDetailLoaded',
+      build: makeBloc,
+      act: (bloc) => bloc.add(const TaskDetailEditCancelled()),
+      expect: () => <TaskDetailState>[],
+    );
+
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'sets isEditing=false and clears all draft fields',
+      build: makeBloc,
+      seed: () => TaskDetailLoaded(
+        task: makeTask(),
+        isEditing: true,
+        draftPriority: TaskPriority.critical,
+        draftStatus: TaskStatus.done,
+        draftDueDate: DateTime(2025, 6, 1),
+      ),
+      act: (bloc) => bloc.add(const TaskDetailEditCancelled()),
+      expect: () => [
+        isA<TaskDetailLoaded>()
+            .having((s) => s.isEditing, 'isEditing', isFalse)
+            .having((s) => s.draftPriority, 'draftPriority', isNull)
+            .having((s) => s.draftStatus, 'draftStatus', isNull)
+            .having((s) => s.draftDueDate, 'draftDueDate', isNull),
+      ],
+    );
+  });
+
+  group('TaskDetailStatusChanged', () {
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'updates draftStatus',
+      build: makeBloc,
+      seed: () => TaskDetailLoaded(task: makeTask(), isEditing: true),
+      act: (bloc) => bloc.add(const TaskDetailStatusChanged(TaskStatus.done)),
+      expect: () => [
+        isA<TaskDetailLoaded>()
+            .having((s) => s.draftStatus, 'draftStatus', TaskStatus.done),
+      ],
+    );
+  });
+
+  group('TaskDetailPriorityChanged', () {
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'updates draftPriority',
+      build: makeBloc,
+      seed: () => TaskDetailLoaded(task: makeTask(), isEditing: true),
+      act: (bloc) =>
+          bloc.add(const TaskDetailPriorityChanged(TaskPriority.critical)),
+      expect: () => [
+        isA<TaskDetailLoaded>()
+            .having((s) => s.draftPriority, 'draftPriority', TaskPriority.critical),
+      ],
+    );
+  });
+
+  group('TaskDetailDueDateChanged', () {
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'updates draftDueDate when date is non-null',
+      build: makeBloc,
+      seed: () => TaskDetailLoaded(task: makeTask(), isEditing: true),
+      act: (bloc) =>
+          bloc.add(TaskDetailDueDateChanged(DateTime(2025, 12, 31))),
+      expect: () => [
+        isA<TaskDetailLoaded>().having(
+          (s) => s.draftDueDate,
+          'draftDueDate',
+          DateTime(2025, 12, 31),
+        ),
+      ],
+    );
+
+    blocTest<TaskDetailBloc, TaskDetailState>(
+      'clears draftDueDate when date is null',
+      build: makeBloc,
+      seed: () => TaskDetailLoaded(
+        task: makeTask(),
+        isEditing: true,
+        draftDueDate: DateTime(2025, 6, 1),
+      ),
+      act: (bloc) => bloc.add(const TaskDetailDueDateChanged(null)),
+      expect: () => [
+        isA<TaskDetailLoaded>()
+            .having((s) => s.draftDueDate, 'draftDueDate', isNull),
+      ],
     );
   });
 }

@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../../domain/entities/board_task.dart';
-import '../../../../domain/entities/task_status.dart';
+import '../../../../../domain/entities/board_task.dart';
+import '../../../../../domain/entities/task_status.dart';
 
 part 'board_state.freezed.dart';
 

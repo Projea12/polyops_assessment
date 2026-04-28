@@ -2,7 +2,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
-import '../../../domain/usecases/task/create_task_usecase.dart';
+import '../../../../domain/usecases/task/create_task_usecase.dart';
 import 'task_form_event.dart';
 import 'task_form_state.dart';
 

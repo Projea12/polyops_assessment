@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import '../../../domain/entities/connectivity_status.dart';
 import '../../../domain/entities/verification_document.dart';
 import '../../../domain/repositories/i_document_repository.dart';
+import '../../../domain/usecases/document/pick_document_file_usecase.dart';
 import '../../../domain/usecases/document/upload_document_usecase.dart';
 import '../../../domain/usecases/document/watch_document_usecase.dart';
 import 'document_event.dart';
@@ -32,9 +33,14 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   final WatchDocumentUseCase _watchDocuments;
   final UploadDocumentUseCase _uploadDocument;
   final IDocumentRepository _documentRepository;
+  final PickDocumentFileUseCase _pickDocumentFile;
 
-  DocumentBloc(this._watchDocuments, this._uploadDocument, this._documentRepository)
-      : super(const DocumentState.initial()) {
+  DocumentBloc(
+    this._watchDocuments,
+    this._uploadDocument,
+    this._documentRepository,
+    this._pickDocumentFile,
+  ) : super(const DocumentState.initial()) {
     on<DocumentSubscriptionRequested>(
       _onSubscriptionRequested,
       transformer: restartable(),
@@ -44,16 +50,21 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       transformer: sequential(),
     );
     on<DocumentUploadStatusReset>(_onUploadStatusReset);
+    on<DocumentTypeSelected>(_onTypeSelected, transformer: droppable());
+    on<DocumentPickFileRequested>(_onPickFileRequested, transformer: droppable());
+    on<DocumentFileCleared>(_onFileCleared, transformer: droppable());
+    on<DocumentDraftCleared>(_onDraftCleared, transformer: droppable());
   }
 
   Future<void> _onSubscriptionRequested(
     DocumentSubscriptionRequested event,
     Emitter<DocumentState> emit,
   ) async {
+    // Capture draft before transitioning to loading so it survives the gap.
+    final prevLoaded = state is DocumentLoaded ? state as DocumentLoaded : null;
+
     emit(const DocumentState.loading());
 
-    // Seed from the repository's current value so connectivity is correct even
-    // before the first stream emission arrives.
     var currentConnStatus = _documentRepository.connectivityStatus;
 
     final merged = StreamGroup.merge([
@@ -67,20 +78,21 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       merged,
       onData: (update) {
         final current = state;
+        // After the first _DocsUpdate the state is DocumentLoaded; use it.
+        // On the very first emission state is still DocumentLoading, so fall
+        // back to prevLoaded to recover connectivity + draft.
+        final ref = current is DocumentLoaded ? current : prevLoaded;
         switch (update) {
           case _DocsUpdate(:final docs):
             return DocumentState.loaded(
               documents: docs,
-              connectivityStatus: current is DocumentLoaded
-                  ? current.connectivityStatus
-                  : currentConnStatus,
-              uploadStatus: current is DocumentLoaded
-                  ? current.uploadStatus
-                  : DocumentUploadStatus.idle,
-              lastUploaded:
-                  current is DocumentLoaded ? current.lastUploaded : null,
-              uploadError:
-                  current is DocumentLoaded ? current.uploadError : null,
+              connectivityStatus: ref?.connectivityStatus ?? currentConnStatus,
+              uploadStatus: ref?.uploadStatus ?? DocumentUploadStatus.idle,
+              lastUploaded: ref?.lastUploaded,
+              uploadError: ref?.uploadError,
+              draftType: ref?.draftType,
+              draftFile: ref?.draftFile,
+              activePickerSource: ref?.activePickerSource,
             );
           case _ConnUpdate(:final status):
             currentConnStatus = status;
@@ -98,6 +110,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   ) async {
     final current = state;
     if (current is! DocumentLoaded) return;
+    if (!current.canUpload) return;
 
     emit(current.copyWith(
       uploadStatus: DocumentUploadStatus.uploading,
@@ -105,8 +118,8 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     ));
 
     final result = await _uploadDocument(
-      filePath: event.filePath,
-      type: event.type,
+      filePath: current.draftFile!.path,
+      type: current.draftType!,
     );
 
     result.fold(
@@ -117,6 +130,9 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       (document) => emit(current.copyWith(
         uploadStatus: DocumentUploadStatus.success,
         lastUploaded: document,
+        draftType: null,
+        draftFile: null,
+        activePickerSource: null,
       )),
     );
   }
@@ -131,6 +147,60 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       uploadStatus: DocumentUploadStatus.idle,
       uploadError: null,
       lastUploaded: null,
+    ));
+  }
+
+  void _onTypeSelected(
+    DocumentTypeSelected event,
+    Emitter<DocumentState> emit,
+  ) {
+    final current = state;
+    if (current is! DocumentLoaded) return;
+    emit(current.copyWith(draftType: event.type));
+  }
+
+  Future<void> _onPickFileRequested(
+    DocumentPickFileRequested event,
+    Emitter<DocumentState> emit,
+  ) async {
+    final current = state;
+    if (current is! DocumentLoaded) return;
+
+    emit(current.copyWith(activePickerSource: event.source));
+
+    final result = await _pickDocumentFile(event.source);
+
+    result.fold(
+      (_) => emit(current.copyWith(activePickerSource: null)),
+      (file) => emit(current.copyWith(
+        draftFile: file,
+        activePickerSource: null,
+      )),
+    );
+  }
+
+  void _onFileCleared(
+    DocumentFileCleared event,
+    Emitter<DocumentState> emit,
+  ) {
+    final current = state;
+    if (current is! DocumentLoaded) return;
+    emit(current.copyWith(
+      draftFile: null,
+      activePickerSource: null,
+    ));
+  }
+
+  void _onDraftCleared(
+    DocumentDraftCleared event,
+    Emitter<DocumentState> emit,
+  ) {
+    final current = state;
+    if (current is! DocumentLoaded) return;
+    emit(current.copyWith(
+      draftType: null,
+      draftFile: null,
+      activePickerSource: null,
     ));
   }
 }

@@ -13,6 +13,7 @@ import 'package:polyops_assessment/domain/failures/failures.dart';
 import 'package:polyops_assessment/domain/repositories/i_document_repository.dart';
 import 'package:polyops_assessment/domain/repositories/i_task_repository.dart';
 import 'package:polyops_assessment/domain/services/i_sync_service.dart';
+import 'package:polyops_assessment/domain/usecases/document/pick_document_file_usecase.dart';
 import 'package:polyops_assessment/domain/usecases/document/upload_document_usecase.dart';
 import 'package:polyops_assessment/domain/usecases/document/watch_document_usecase.dart';
 import 'package:polyops_assessment/domain/usecases/task/add_comment_usecase.dart';
@@ -36,6 +37,7 @@ class MockWatchBoardTasksByStatusUseCase extends Mock implements WatchBoardTasks
 class MockMoveTaskUseCase extends Mock implements MoveTaskUseCase {}
 class MockWatchDocumentUseCase extends Mock implements WatchDocumentUseCase {}
 class MockUploadDocumentUseCase extends Mock implements UploadDocumentUseCase {}
+class MockPickDocumentFileUseCase extends Mock implements PickDocumentFileUseCase {}
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 

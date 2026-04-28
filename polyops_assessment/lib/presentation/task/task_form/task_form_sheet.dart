@@ -5,9 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/di/injection.dart';
-import '../../../domain/entities/task_priority.dart';
-import 'bloc/task_form_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../domain/entities/task_priority.dart';
+import 'task_form_bloc/task_form_bloc.dart';
 
 class TaskFormSheet extends StatelessWidget {
   const TaskFormSheet._();

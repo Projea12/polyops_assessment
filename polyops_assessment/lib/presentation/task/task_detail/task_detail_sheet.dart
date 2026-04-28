@@ -5,13 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/di/injection.dart';
-import '../../../domain/entities/activity_entry.dart';
-import '../../../domain/entities/comment.dart';
-import '../../../domain/entities/task.dart';
-import '../../../domain/entities/task_priority.dart';
-import '../../../domain/entities/task_status.dart';
-import 'bloc/task_detail_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../domain/entities/activity_entry.dart';
+import '../../../../domain/entities/comment.dart';
+import '../../../../domain/entities/task.dart';
+import '../../../../domain/entities/task_priority.dart';
+import '../../../../domain/entities/task_status.dart';
+import 'task_detail_bloc/task_detail_bloc.dart';
 
 class TaskDetailSheet extends StatelessWidget {
   final String taskId;
@@ -36,98 +36,19 @@ class TaskDetailSheet extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _TaskDetailContent extends StatefulWidget {
+class _TaskDetailContent extends StatelessWidget {
   final String taskId;
   const _TaskDetailContent({required this.taskId});
 
-  @override
-  State<_TaskDetailContent> createState() => _TaskDetailContentState();
-}
-
-class _TaskDetailContentState extends State<_TaskDetailContent>
-    with SingleTickerProviderStateMixin {
-  late final TextEditingController _titleController;
-  late final TextEditingController _commentController;
-  late QuillController _quillController;
-  late final TabController _tabController;
-
-  TaskPriority _editPriority = TaskPriority.low;
-  TaskStatus _editStatus = TaskStatus.todo;
-  DateTime? _editDueDate;
-  bool _isEditing = false;
-  bool _initialized = false;
-
   static const _green = Color(0xFF1B5E37);
 
-  bool get _canSave =>
-      _titleController.text.trim().isNotEmpty && _editDueDate != null;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController();
-    _titleController.addListener(() => setState(() {}));
-    _commentController = TextEditingController();
-    _tabController = TabController(length: 3, vsync: this);
-    _quillController = QuillController.basic();
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _commentController.dispose();
-    _quillController.dispose();
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  void _initFromTask(Task task) {
-    _titleController.text = task.title;
-    _editPriority = task.priority;
-    _editStatus = task.status;
-    _editDueDate = task.dueDate;
-    _quillController.dispose();
-    _quillController = _buildQuillController(task);
-    _initialized = true;
-  }
-
-  QuillController _buildQuillController(Task task) {
-    if (task.richDescription != null) {
-      try {
-        final json = jsonDecode(task.richDescription!) as List;
-        return QuillController(
-          document: Document.fromJson(json),
-          selection: const TextSelection.collapsed(offset: 0),
-        );
-      } catch (_) {}
-    }
-    if (task.description.isNotEmpty) {
-      final doc = Document()..insert(0, task.description);
-      return QuillController(
-        document: doc,
-        selection: const TextSelection.collapsed(offset: 0),
-      );
-    }
-    return QuillController.basic();
-  }
-
-  void _enterEdit(Task task) {
-    _quillController.dispose();
-    _quillController = _buildQuillController(task);
-    setState(() {
-      _titleController.text = task.title;
-      _editPriority = task.priority;
-      _editStatus = task.status;
-      _editDueDate = task.dueDate;
-      _isEditing = true;
-    });
-  }
-
-  void _cancelEdit() => setState(() => _isEditing = false);
-
-  Future<void> _pickDueDate() async {
+  static Future<void> _pickDueDate(
+    BuildContext context,
+    TaskDetailLoaded state,
+    TaskDetailBloc bloc,
+  ) async {
     final now = DateTime.now();
-    final initial = _editDueDate ?? now.add(const Duration(days: 1));
+    final initial = state.draftDueDate ?? now.add(const Duration(days: 1));
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -139,11 +60,11 @@ class _TaskDetailContentState extends State<_TaskDetailContent>
         child: child!,
       ),
     );
-    if (pickedDate == null || !mounted) return;
+    if (pickedDate == null || !context.mounted) return;
     final pickedTime = await showTimePicker(
       context: context,
-      initialTime: _editDueDate != null
-          ? TimeOfDay.fromDateTime(_editDueDate!)
+      initialTime: state.draftDueDate != null
+          ? TimeOfDay.fromDateTime(state.draftDueDate!)
           : const TimeOfDay(hour: 9, minute: 0),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx)
@@ -151,42 +72,49 @@ class _TaskDetailContentState extends State<_TaskDetailContent>
         child: child!,
       ),
     );
-    if (!mounted) return;
+    if (!context.mounted) return;
     final time = pickedTime ?? const TimeOfDay(hour: 9, minute: 0);
-    setState(() {
-      _editDueDate = DateTime(
-        pickedDate.year,
-        pickedDate.month,
-        pickedDate.day,
-        time.hour,
-        time.minute,
-      );
-    });
-  }
-
-  void _save(Task current) {
-    if (!_canSave) return;
-    final description = _quillController.document.toPlainText().trim();
-    final richDescription =
-        jsonEncode(_quillController.document.toDelta().toJson());
-    context.read<TaskDetailBloc>().add(TaskDetailSaveRequested(Task(
-      id: current.id,
-      title: _titleController.text.trim(),
-      description: description,
-      richDescription: richDescription,
-      status: _editStatus,
-      priority: _editPriority,
-      createdAt: current.createdAt,
-      updatedAt: DateTime.now(),
-      dueDate: _editDueDate,
-      isPending: current.isPending,
-      boardPosition: current.boardPosition,
-      comments: current.comments,
-      activityHistory: current.activityHistory,
+    bloc.add(TaskDetailDueDateChanged(DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      time.hour,
+      time.minute,
     )));
   }
 
-  Future<void> _confirmDelete(Task task) async {
+  static void _save(
+    TaskDetailLoaded state,
+    TaskDetailBloc bloc,
+  ) {
+    final titleText = bloc.titleController.text.trim();
+    if (titleText.isEmpty || state.draftDueDate == null) return;
+    final description = bloc.quillController.document.toPlainText().trim();
+    final richDescription =
+        jsonEncode(bloc.quillController.document.toDelta().toJson());
+    final task = state.task;
+    bloc.add(TaskDetailSaveRequested(Task(
+      id: task.id,
+      title: titleText,
+      description: description,
+      richDescription: richDescription,
+      status: state.draftStatus ?? task.status,
+      priority: state.draftPriority ?? task.priority,
+      createdAt: task.createdAt,
+      updatedAt: DateTime.now(),
+      dueDate: state.draftDueDate,
+      isPending: task.isPending,
+      boardPosition: task.boardPosition,
+      comments: task.comments,
+      activityHistory: task.activityHistory,
+    )));
+  }
+
+  static Future<void> _confirmDelete(
+    BuildContext context,
+    Task task,
+    TaskDetailBloc bloc,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -212,215 +140,224 @@ class _TaskDetailContentState extends State<_TaskDetailContent>
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
-    context
-        .read<TaskDetailBloc>()
-        .add(TaskDetailDeleteRequested(task.id));
+    if (confirmed != true || !context.mounted) return;
+    bloc.add(TaskDetailDeleteRequested(task.id));
   }
 
-  void _submitComment(String taskId) {
-    final content = _commentController.text.trim();
+  static void _submitComment(
+    BuildContext context,
+    String taskId,
+    TaskDetailBloc bloc,
+  ) {
+    final content = bloc.commentController.text.trim();
     if (content.isEmpty) return;
     FocusScope.of(context).unfocus();
-    context.read<TaskDetailBloc>().add(
-          TaskDetailCommentSubmitted(taskId: taskId, content: content),
-        );
-    _commentController.clear();
+    bloc.add(TaskDetailCommentSubmitted(taskId: taskId, content: content));
+    bloc.commentController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return BlocListener<TaskDetailBloc, TaskDetailState>(
-      listener: (context, state) {
-        if (state is TaskDetailSaveSuccess) {
-          final messenger = ScaffoldMessenger.of(context);
-          Navigator.pop(context);
-          messenger.showSnackBar(SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle_rounded,
-                    color: Colors.white, size: 18),
-                SizedBox(width: 10),
-                Text('Task updated successfully'),
-              ],
-            ),
-            backgroundColor: _green,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            duration: const Duration(seconds: 2),
-          ));
-        } else if (state is TaskDetailDeleteSuccess) {
-          final messenger = ScaffoldMessenger.of(context);
-          Navigator.pop(context);
-          messenger.showSnackBar(SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.delete_rounded, color: Colors.white, size: 18),
-                SizedBox(width: 10),
-                Text('Task deleted successfully'),
-              ],
-            ),
-            backgroundColor: Colors.red.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            duration: const Duration(seconds: 2),
-          ));
-        } else if (state is TaskDetailLoaded && state.operationError != null) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.operationError!),
-            backgroundColor: Colors.red.shade700,
-          ));
-        }
-      },
-      child: BlocBuilder<TaskDetailBloc, TaskDetailState>(
-        builder: (context, state) {
-          if (state is TaskDetailLoading || state is TaskDetailInitial) {
-            return Container(
-              constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.94),
-              padding: EdgeInsets.only(bottom: bottom),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(24)),
+    final bloc = context.read<TaskDetailBloc>();
+
+    return DefaultTabController(
+      length: 3,
+      child: BlocListener<TaskDetailBloc, TaskDetailState>(
+        listener: (context, state) {
+          if (state is TaskDetailSaveSuccess) {
+            final messenger = ScaffoldMessenger.of(context);
+            Navigator.pop(context);
+            messenger.showSnackBar(SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle_rounded,
+                      color: Colors.white, size: 18),
+                  SizedBox(width: 10),
+                  Text('Task updated successfully'),
+                ],
               ),
-              child: const SizedBox(
+              backgroundColor: _green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 2),
+            ));
+          } else if (state is TaskDetailDeleteSuccess) {
+            final messenger = ScaffoldMessenger.of(context);
+            Navigator.pop(context);
+            messenger.showSnackBar(SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.delete_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 10),
+                  Text('Task deleted successfully'),
+                ],
+              ),
+              backgroundColor: Colors.red.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 2),
+            ));
+          } else if (state is TaskDetailLoaded && state.operationError != null) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(state.operationError!),
+              backgroundColor: Colors.red.shade700,
+            ));
+          }
+        },
+        child: BlocBuilder<TaskDetailBloc, TaskDetailState>(
+          builder: (context, state) {
+            if (state is TaskDetailLoading || state is TaskDetailInitial) {
+              return Container(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.94),
+                padding: EdgeInsets.only(bottom: bottom),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: const SizedBox(
+                  height: 200,
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFF1B5E37)),
+                  ),
+                ),
+              );
+            }
+
+            if (state is TaskDetailError) {
+              return Container(
                 height: 200,
-                child: Center(
-                  child:
-                      CircularProgressIndicator(color: Color(0xFF1B5E37)),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-              ),
-            );
-          }
+                child: Center(child: Text(state.message)),
+              );
+            }
 
-          if (state is TaskDetailError) {
-            return Container(
-              height: 200,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Center(child: Text(state.message)),
-            );
-          }
+            if (state is! TaskDetailLoaded) return const SizedBox.shrink();
 
-          if (state is! TaskDetailLoaded) return const SizedBox.shrink();
+            final task = state.task;
 
-          final task = state.task;
-          if (!_initialized) {
-            // Seed local edit state on first load without triggering a rebuild
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && !_initialized) {
-                setState(() => _initFromTask(task));
-              }
-            });
-          }
-
-          return GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: Container(
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.94),
-            padding: EdgeInsets.only(bottom: bottom),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius:
-                  BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _SheetHandle(),
-                _SheetHeader(
-                  task: task,
-                  isEditing: _isEditing,
-                  titleController: _titleController,
-                  onEdit: () => _enterEdit(task),
-                  onCancel: _cancelEdit,
+            return GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Container(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.94),
+                padding: EdgeInsets.only(bottom: bottom),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                const SizedBox(height: 10),
-                if (_isEditing) ...[
-                  _EditStatusRow(
-                    status: _editStatus,
-                    onChanged: (s) => setState(() => _editStatus = s),
-                  ),
-                  const SizedBox(height: 8),
-                  _EditPriorityRow(
-                    selected: _editPriority,
-                    onChanged: (p) => setState(() => _editPriority = p),
-                  ),
-                  const SizedBox(height: 8),
-                  _EditDueDateRow(
-                    dueDate: _editDueDate,
-                    onTap: _pickDueDate,
-                    onClear: () => setState(() => _editDueDate = null),
-                  ),
-                ] else
-                  _ViewMetaRow(task: task),
-                const SizedBox(height: 12),
-                TabBar(
-                  controller: _tabController,
-                  labelColor: _green,
-                  unselectedLabelColor: Colors.grey.shade500,
-                  indicatorColor: _green,
-                  indicatorSize: TabBarIndicatorSize.label,
-                  labelStyle: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600),
-                  tabs: [
-                    const Tab(text: 'Description'),
-                    Tab(
-                      child: _CountTabLabel(
-                        label: 'Comments',
-                        count: task.comments.length,
-                        color: _green,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SheetHandle(),
+                    _SheetHeader(
+                      task: task,
+                      isEditing: state.isEditing,
+                      titleController: bloc.titleController,
+                      onEdit: () => bloc.add(const TaskDetailEditEntered()),
+                      onCancel: () => bloc.add(const TaskDetailEditCancelled()),
+                    ),
+                    const SizedBox(height: 10),
+                    if (state.isEditing) ...[
+                      _EditStatusRow(
+                        status: state.draftStatus ?? task.status,
+                        onChanged: (s) =>
+                            bloc.add(TaskDetailStatusChanged(s)),
+                      ),
+                      const SizedBox(height: 8),
+                      _EditPriorityRow(
+                        selected: state.draftPriority ?? task.priority,
+                        onChanged: (p) =>
+                            bloc.add(TaskDetailPriorityChanged(p)),
+                      ),
+                      const SizedBox(height: 8),
+                      _EditDueDateRow(
+                        dueDate: state.draftDueDate,
+                        onTap: () => _pickDueDate(context, state, bloc),
+                        onClear: () =>
+                            bloc.add(const TaskDetailDueDateChanged(null)),
+                      ),
+                    ] else
+                      _ViewMetaRow(task: task),
+                    const SizedBox(height: 12),
+                    TabBar(
+                      labelColor: _green,
+                      unselectedLabelColor: Colors.grey.shade500,
+                      indicatorColor: _green,
+                      indicatorSize: TabBarIndicatorSize.label,
+                      labelStyle: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600),
+                      tabs: [
+                        const Tab(text: 'Description'),
+                        Tab(
+                          child: _CountTabLabel(
+                            label: 'Comments',
+                            count: task.comments.length,
+                            color: _green,
+                          ),
+                        ),
+                        Tab(
+                          child: _CountTabLabel(
+                            label: 'Activity',
+                            count: task.activityHistory.length,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          _DescriptionTab(
+                            controller: bloc.quillController,
+                            readOnly: !state.isEditing,
+                          ),
+                          _CommentsTab(
+                            comments: task.comments,
+                            commentController: bloc.commentController,
+                            isSubmitting: state.isSubmittingComment,
+                            onSubmit: () =>
+                                _submitComment(context, task.id, bloc),
+                          ),
+                          _ActivityTab(entries: task.activityHistory),
+                        ],
                       ),
                     ),
-                    Tab(
-                      child: _CountTabLabel(
-                        label: 'Activity',
-                        count: task.activityHistory.length,
-                        color: Colors.grey.shade600,
-                      ),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: bloc.titleController,
+                      builder: (_, titleVal, __) {
+                        final canSave = titleVal.text.trim().isNotEmpty &&
+                            state.draftDueDate != null;
+                        return _BottomBar(
+                          isEditing: state.isEditing,
+                          isSubmitting: state.isSaving,
+                          canSave: canSave,
+                          onDelete: () =>
+                              _confirmDelete(context, task, bloc),
+                          onEdit: () =>
+                              bloc.add(const TaskDetailEditEntered()),
+                          onCancel: () =>
+                              bloc.add(const TaskDetailEditCancelled()),
+                          onSave: () => _save(state, bloc),
+                        );
+                      },
                     ),
                   ],
                 ),
-                const Divider(height: 1),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _DescriptionTab(
-                        controller: _quillController,
-                        readOnly: !_isEditing,
-                      ),
-                      _CommentsTab(
-                        comments: task.comments,
-                        commentController: _commentController,
-                        isSubmitting: state.isSubmittingComment,
-                        onSubmit: () => _submitComment(task.id),
-                      ),
-                      _ActivityTab(entries: task.activityHistory),
-                    ],
-                  ),
-                ),
-                _BottomBar(
-                  isEditing: _isEditing,
-                  isSubmitting: state.isSaving,
-                  canSave: _canSave,
-                  onDelete: () => _confirmDelete(task),
-                  onEdit: () => _enterEdit(task),
-                  onCancel: _cancelEdit,
-                  onSave: () => _save(task),
-                ),
-              ],
-            ),
-          ));
-        },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

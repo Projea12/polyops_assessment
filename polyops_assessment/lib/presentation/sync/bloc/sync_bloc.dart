@@ -1,4 +1,5 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
@@ -15,7 +16,7 @@ final class _SyncStarted extends SyncEvent {
 }
 
 @injectable
-class SyncBloc extends Bloc<SyncEvent, SyncState> {
+class SyncBloc extends Bloc<SyncEvent, SyncState> with WidgetsBindingObserver {
   final ISyncService _syncService;
 
   SyncBloc(this._syncService)
@@ -24,6 +25,18 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     on<SyncTriggered>(_onSyncTriggered, transformer: droppable());
     on<ConflictResolved>(_onConflictResolved, transformer: sequential());
     add(const _SyncStarted());
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) add(const SyncTriggered());
+  }
+
+  @override
+  Future<void> close() {
+    WidgetsBinding.instance.removeObserver(this);
+    return super.close();
   }
 
   Future<void> _onStarted(

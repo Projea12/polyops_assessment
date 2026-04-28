@@ -8,14 +8,15 @@ import '../../../helpers/test_helpers.dart';
 void main() {
   late MockISyncService syncService;
 
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    registerFallbackValue(makeSyncConflict());
+  });
+
   setUp(() {
     syncService = MockISyncService();
     when(() => syncService.conflicts).thenReturn([]);
     when(() => syncService.conflictsStream).thenAnswer((_) => const Stream.empty());
-  });
-
-  setUpAll(() {
-    registerFallbackValue(makeSyncConflict());
   });
 
   SyncBloc makeBloc() => SyncBloc(syncService);

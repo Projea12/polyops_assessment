@@ -55,13 +55,17 @@ extension DocumentEventPatterns on DocumentEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( DocumentSubscriptionRequested value)?  subscriptionRequested,TResult Function( DocumentUploadRequested value)?  uploadRequested,TResult Function( DocumentUploadStatusReset value)?  uploadStatusReset,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( DocumentSubscriptionRequested value)?  subscriptionRequested,TResult Function( DocumentUploadRequested value)?  uploadRequested,TResult Function( DocumentUploadStatusReset value)?  uploadStatusReset,TResult Function( DocumentTypeSelected value)?  typeSelected,TResult Function( DocumentPickFileRequested value)?  pickFileRequested,TResult Function( DocumentFileCleared value)?  fileCleared,TResult Function( DocumentDraftCleared value)?  draftCleared,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case DocumentSubscriptionRequested() when subscriptionRequested != null:
 return subscriptionRequested(_that);case DocumentUploadRequested() when uploadRequested != null:
 return uploadRequested(_that);case DocumentUploadStatusReset() when uploadStatusReset != null:
-return uploadStatusReset(_that);case _:
+return uploadStatusReset(_that);case DocumentTypeSelected() when typeSelected != null:
+return typeSelected(_that);case DocumentPickFileRequested() when pickFileRequested != null:
+return pickFileRequested(_that);case DocumentFileCleared() when fileCleared != null:
+return fileCleared(_that);case DocumentDraftCleared() when draftCleared != null:
+return draftCleared(_that);case _:
   return orElse();
 
 }
@@ -79,13 +83,17 @@ return uploadStatusReset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( DocumentSubscriptionRequested value)  subscriptionRequested,required TResult Function( DocumentUploadRequested value)  uploadRequested,required TResult Function( DocumentUploadStatusReset value)  uploadStatusReset,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( DocumentSubscriptionRequested value)  subscriptionRequested,required TResult Function( DocumentUploadRequested value)  uploadRequested,required TResult Function( DocumentUploadStatusReset value)  uploadStatusReset,required TResult Function( DocumentTypeSelected value)  typeSelected,required TResult Function( DocumentPickFileRequested value)  pickFileRequested,required TResult Function( DocumentFileCleared value)  fileCleared,required TResult Function( DocumentDraftCleared value)  draftCleared,}){
 final _that = this;
 switch (_that) {
 case DocumentSubscriptionRequested():
 return subscriptionRequested(_that);case DocumentUploadRequested():
 return uploadRequested(_that);case DocumentUploadStatusReset():
-return uploadStatusReset(_that);}
+return uploadStatusReset(_that);case DocumentTypeSelected():
+return typeSelected(_that);case DocumentPickFileRequested():
+return pickFileRequested(_that);case DocumentFileCleared():
+return fileCleared(_that);case DocumentDraftCleared():
+return draftCleared(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -99,13 +107,17 @@ return uploadStatusReset(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( DocumentSubscriptionRequested value)?  subscriptionRequested,TResult? Function( DocumentUploadRequested value)?  uploadRequested,TResult? Function( DocumentUploadStatusReset value)?  uploadStatusReset,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( DocumentSubscriptionRequested value)?  subscriptionRequested,TResult? Function( DocumentUploadRequested value)?  uploadRequested,TResult? Function( DocumentUploadStatusReset value)?  uploadStatusReset,TResult? Function( DocumentTypeSelected value)?  typeSelected,TResult? Function( DocumentPickFileRequested value)?  pickFileRequested,TResult? Function( DocumentFileCleared value)?  fileCleared,TResult? Function( DocumentDraftCleared value)?  draftCleared,}){
 final _that = this;
 switch (_that) {
 case DocumentSubscriptionRequested() when subscriptionRequested != null:
 return subscriptionRequested(_that);case DocumentUploadRequested() when uploadRequested != null:
 return uploadRequested(_that);case DocumentUploadStatusReset() when uploadStatusReset != null:
-return uploadStatusReset(_that);case _:
+return uploadStatusReset(_that);case DocumentTypeSelected() when typeSelected != null:
+return typeSelected(_that);case DocumentPickFileRequested() when pickFileRequested != null:
+return pickFileRequested(_that);case DocumentFileCleared() when fileCleared != null:
+return fileCleared(_that);case DocumentDraftCleared() when draftCleared != null:
+return draftCleared(_that);case _:
   return null;
 
 }
@@ -122,12 +134,16 @@ return uploadStatusReset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  subscriptionRequested,TResult Function( String filePath,  DocumentType type)?  uploadRequested,TResult Function()?  uploadStatusReset,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  subscriptionRequested,TResult Function()?  uploadRequested,TResult Function()?  uploadStatusReset,TResult Function( DocumentType type)?  typeSelected,TResult Function( FileSource source)?  pickFileRequested,TResult Function()?  fileCleared,TResult Function()?  draftCleared,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case DocumentSubscriptionRequested() when subscriptionRequested != null:
 return subscriptionRequested();case DocumentUploadRequested() when uploadRequested != null:
-return uploadRequested(_that.filePath,_that.type);case DocumentUploadStatusReset() when uploadStatusReset != null:
-return uploadStatusReset();case _:
+return uploadRequested();case DocumentUploadStatusReset() when uploadStatusReset != null:
+return uploadStatusReset();case DocumentTypeSelected() when typeSelected != null:
+return typeSelected(_that.type);case DocumentPickFileRequested() when pickFileRequested != null:
+return pickFileRequested(_that.source);case DocumentFileCleared() when fileCleared != null:
+return fileCleared();case DocumentDraftCleared() when draftCleared != null:
+return draftCleared();case _:
   return orElse();
 
 }
@@ -145,12 +161,16 @@ return uploadStatusReset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  subscriptionRequested,required TResult Function( String filePath,  DocumentType type)  uploadRequested,required TResult Function()  uploadStatusReset,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  subscriptionRequested,required TResult Function()  uploadRequested,required TResult Function()  uploadStatusReset,required TResult Function( DocumentType type)  typeSelected,required TResult Function( FileSource source)  pickFileRequested,required TResult Function()  fileCleared,required TResult Function()  draftCleared,}) {final _that = this;
 switch (_that) {
 case DocumentSubscriptionRequested():
 return subscriptionRequested();case DocumentUploadRequested():
-return uploadRequested(_that.filePath,_that.type);case DocumentUploadStatusReset():
-return uploadStatusReset();}
+return uploadRequested();case DocumentUploadStatusReset():
+return uploadStatusReset();case DocumentTypeSelected():
+return typeSelected(_that.type);case DocumentPickFileRequested():
+return pickFileRequested(_that.source);case DocumentFileCleared():
+return fileCleared();case DocumentDraftCleared():
+return draftCleared();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -164,12 +184,16 @@ return uploadStatusReset();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  subscriptionRequested,TResult? Function( String filePath,  DocumentType type)?  uploadRequested,TResult? Function()?  uploadStatusReset,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  subscriptionRequested,TResult? Function()?  uploadRequested,TResult? Function()?  uploadStatusReset,TResult? Function( DocumentType type)?  typeSelected,TResult? Function( FileSource source)?  pickFileRequested,TResult? Function()?  fileCleared,TResult? Function()?  draftCleared,}) {final _that = this;
 switch (_that) {
 case DocumentSubscriptionRequested() when subscriptionRequested != null:
 return subscriptionRequested();case DocumentUploadRequested() when uploadRequested != null:
-return uploadRequested(_that.filePath,_that.type);case DocumentUploadStatusReset() when uploadStatusReset != null:
-return uploadStatusReset();case _:
+return uploadRequested();case DocumentUploadStatusReset() when uploadStatusReset != null:
+return uploadStatusReset();case DocumentTypeSelected() when typeSelected != null:
+return typeSelected(_that.type);case DocumentPickFileRequested() when pickFileRequested != null:
+return pickFileRequested(_that.source);case DocumentFileCleared() when fileCleared != null:
+return fileCleared();case DocumentDraftCleared() when draftCleared != null:
+return draftCleared();case _:
   return null;
 
 }
@@ -213,69 +237,33 @@ String toString() {
 
 
 class DocumentUploadRequested implements DocumentEvent {
-  const DocumentUploadRequested({required this.filePath, required this.type});
+  const DocumentUploadRequested();
   
 
- final  String filePath;
- final  DocumentType type;
 
-/// Create a copy of DocumentEvent
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$DocumentUploadRequestedCopyWith<DocumentUploadRequested> get copyWith => _$DocumentUploadRequestedCopyWithImpl<DocumentUploadRequested>(this, _$identity);
+
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentUploadRequested&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.type, type) || other.type == type));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentUploadRequested);
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,filePath,type);
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'DocumentEvent.uploadRequested(filePath: $filePath, type: $type)';
+  return 'DocumentEvent.uploadRequested()';
 }
 
 
 }
 
-/// @nodoc
-abstract mixin class $DocumentUploadRequestedCopyWith<$Res> implements $DocumentEventCopyWith<$Res> {
-  factory $DocumentUploadRequestedCopyWith(DocumentUploadRequested value, $Res Function(DocumentUploadRequested) _then) = _$DocumentUploadRequestedCopyWithImpl;
-@useResult
-$Res call({
- String filePath, DocumentType type
-});
 
 
-
-
-}
-/// @nodoc
-class _$DocumentUploadRequestedCopyWithImpl<$Res>
-    implements $DocumentUploadRequestedCopyWith<$Res> {
-  _$DocumentUploadRequestedCopyWithImpl(this._self, this._then);
-
-  final DocumentUploadRequested _self;
-  final $Res Function(DocumentUploadRequested) _then;
-
-/// Create a copy of DocumentEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? filePath = null,Object? type = null,}) {
-  return _then(DocumentUploadRequested(
-filePath: null == filePath ? _self.filePath : filePath // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as DocumentType,
-  ));
-}
-
-
-}
 
 /// @nodoc
 
@@ -301,6 +289,202 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'DocumentEvent.uploadStatusReset()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class DocumentTypeSelected implements DocumentEvent {
+  const DocumentTypeSelected(this.type);
+  
+
+ final  DocumentType type;
+
+/// Create a copy of DocumentEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DocumentTypeSelectedCopyWith<DocumentTypeSelected> get copyWith => _$DocumentTypeSelectedCopyWithImpl<DocumentTypeSelected>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentTypeSelected&&(identical(other.type, type) || other.type == type));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,type);
+
+@override
+String toString() {
+  return 'DocumentEvent.typeSelected(type: $type)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DocumentTypeSelectedCopyWith<$Res> implements $DocumentEventCopyWith<$Res> {
+  factory $DocumentTypeSelectedCopyWith(DocumentTypeSelected value, $Res Function(DocumentTypeSelected) _then) = _$DocumentTypeSelectedCopyWithImpl;
+@useResult
+$Res call({
+ DocumentType type
+});
+
+
+
+
+}
+/// @nodoc
+class _$DocumentTypeSelectedCopyWithImpl<$Res>
+    implements $DocumentTypeSelectedCopyWith<$Res> {
+  _$DocumentTypeSelectedCopyWithImpl(this._self, this._then);
+
+  final DocumentTypeSelected _self;
+  final $Res Function(DocumentTypeSelected) _then;
+
+/// Create a copy of DocumentEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? type = null,}) {
+  return _then(DocumentTypeSelected(
+null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as DocumentType,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class DocumentPickFileRequested implements DocumentEvent {
+  const DocumentPickFileRequested(this.source);
+  
+
+ final  FileSource source;
+
+/// Create a copy of DocumentEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DocumentPickFileRequestedCopyWith<DocumentPickFileRequested> get copyWith => _$DocumentPickFileRequestedCopyWithImpl<DocumentPickFileRequested>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentPickFileRequested&&(identical(other.source, source) || other.source == source));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,source);
+
+@override
+String toString() {
+  return 'DocumentEvent.pickFileRequested(source: $source)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DocumentPickFileRequestedCopyWith<$Res> implements $DocumentEventCopyWith<$Res> {
+  factory $DocumentPickFileRequestedCopyWith(DocumentPickFileRequested value, $Res Function(DocumentPickFileRequested) _then) = _$DocumentPickFileRequestedCopyWithImpl;
+@useResult
+$Res call({
+ FileSource source
+});
+
+
+
+
+}
+/// @nodoc
+class _$DocumentPickFileRequestedCopyWithImpl<$Res>
+    implements $DocumentPickFileRequestedCopyWith<$Res> {
+  _$DocumentPickFileRequestedCopyWithImpl(this._self, this._then);
+
+  final DocumentPickFileRequested _self;
+  final $Res Function(DocumentPickFileRequested) _then;
+
+/// Create a copy of DocumentEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? source = null,}) {
+  return _then(DocumentPickFileRequested(
+null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as FileSource,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class DocumentFileCleared implements DocumentEvent {
+  const DocumentFileCleared();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentFileCleared);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'DocumentEvent.fileCleared()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class DocumentDraftCleared implements DocumentEvent {
+  const DocumentDraftCleared();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentDraftCleared);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'DocumentEvent.draftCleared()';
 }
 
 

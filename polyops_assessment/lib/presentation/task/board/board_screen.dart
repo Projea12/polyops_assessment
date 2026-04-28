@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/di/injection.dart';
-import '../../../domain/entities/task_status.dart';
-import '../sync/bloc/sync_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../domain/entities/task_status.dart';
+import '../../sync/bloc/sync_bloc.dart';
 import 'bloc/board_bloc.dart';
 import 'board_column.dart';
-import 'conflict_resolution_sheet.dart';
-import 'task_form_sheet.dart';
+import '../conflict_resolution_sheet.dart';
+import '../task_form/task_form_sheet.dart';
 
 
 class BoardScreen extends StatelessWidget {

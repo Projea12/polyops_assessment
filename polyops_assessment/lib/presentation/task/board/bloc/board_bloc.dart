@@ -3,10 +3,10 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
-import '../../../../domain/entities/board_task.dart';
-import '../../../../domain/entities/task_status.dart';
-import '../../../../domain/usecases/task/move_task_usecase.dart';
-import '../../../../domain/usecases/task/watch_board_tasks_usecase.dart';
+import '../../../../../domain/entities/board_task.dart';
+import '../../../../../domain/entities/task_status.dart';
+import '../../../../../domain/usecases/task/move_task_usecase.dart';
+import '../../../../../domain/usecases/task/watch_board_tasks_usecase.dart';
 import 'board_event.dart';
 import 'board_state.dart';
 

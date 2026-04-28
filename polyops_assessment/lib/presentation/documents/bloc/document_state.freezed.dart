@@ -125,12 +125,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<VerificationDocument> documents,  DocumentUploadStatus uploadStatus,  ConnectivityStatus connectivityStatus,  VerificationDocument? lastUploaded,  String? uploadError)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<VerificationDocument> documents,  DocumentUploadStatus uploadStatus,  ConnectivityStatus connectivityStatus,  VerificationDocument? lastUploaded,  String? uploadError,  DocumentType? draftType,  SelectedFile? draftFile,  FileSource? activePickerSource)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case DocumentInitial() when initial != null:
 return initial();case DocumentLoading() when loading != null:
 return loading();case DocumentLoaded() when loaded != null:
-return loaded(_that.documents,_that.uploadStatus,_that.connectivityStatus,_that.lastUploaded,_that.uploadError);case DocumentError() when error != null:
+return loaded(_that.documents,_that.uploadStatus,_that.connectivityStatus,_that.lastUploaded,_that.uploadError,_that.draftType,_that.draftFile,_that.activePickerSource);case DocumentError() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -149,12 +149,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<VerificationDocument> documents,  DocumentUploadStatus uploadStatus,  ConnectivityStatus connectivityStatus,  VerificationDocument? lastUploaded,  String? uploadError)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<VerificationDocument> documents,  DocumentUploadStatus uploadStatus,  ConnectivityStatus connectivityStatus,  VerificationDocument? lastUploaded,  String? uploadError,  DocumentType? draftType,  SelectedFile? draftFile,  FileSource? activePickerSource)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case DocumentInitial():
 return initial();case DocumentLoading():
 return loading();case DocumentLoaded():
-return loaded(_that.documents,_that.uploadStatus,_that.connectivityStatus,_that.lastUploaded,_that.uploadError);case DocumentError():
+return loaded(_that.documents,_that.uploadStatus,_that.connectivityStatus,_that.lastUploaded,_that.uploadError,_that.draftType,_that.draftFile,_that.activePickerSource);case DocumentError():
 return error(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -169,12 +169,12 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<VerificationDocument> documents,  DocumentUploadStatus uploadStatus,  ConnectivityStatus connectivityStatus,  VerificationDocument? lastUploaded,  String? uploadError)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<VerificationDocument> documents,  DocumentUploadStatus uploadStatus,  ConnectivityStatus connectivityStatus,  VerificationDocument? lastUploaded,  String? uploadError,  DocumentType? draftType,  SelectedFile? draftFile,  FileSource? activePickerSource)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case DocumentInitial() when initial != null:
 return initial();case DocumentLoading() when loading != null:
 return loading();case DocumentLoaded() when loaded != null:
-return loaded(_that.documents,_that.uploadStatus,_that.connectivityStatus,_that.lastUploaded,_that.uploadError);case DocumentError() when error != null:
+return loaded(_that.documents,_that.uploadStatus,_that.connectivityStatus,_that.lastUploaded,_that.uploadError,_that.draftType,_that.draftFile,_that.activePickerSource);case DocumentError() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -251,7 +251,7 @@ String toString() {
 
 
 class DocumentLoaded implements DocumentState {
-  const DocumentLoaded({required final  List<VerificationDocument> documents, this.uploadStatus = DocumentUploadStatus.idle, this.connectivityStatus = ConnectivityStatus.offline, this.lastUploaded, this.uploadError}): _documents = documents;
+  const DocumentLoaded({required final  List<VerificationDocument> documents, this.uploadStatus = DocumentUploadStatus.idle, this.connectivityStatus = ConnectivityStatus.offline, this.lastUploaded, this.uploadError, this.draftType, this.draftFile, this.activePickerSource}): _documents = documents;
   
 
  final  List<VerificationDocument> _documents;
@@ -265,6 +265,9 @@ class DocumentLoaded implements DocumentState {
 @JsonKey() final  ConnectivityStatus connectivityStatus;
  final  VerificationDocument? lastUploaded;
  final  String? uploadError;
+ final  DocumentType? draftType;
+ final  SelectedFile? draftFile;
+ final  FileSource? activePickerSource;
 
 /// Create a copy of DocumentState
 /// with the given fields replaced by the non-null parameter values.
@@ -276,16 +279,16 @@ $DocumentLoadedCopyWith<DocumentLoaded> get copyWith => _$DocumentLoadedCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentLoaded&&const DeepCollectionEquality().equals(other._documents, _documents)&&(identical(other.uploadStatus, uploadStatus) || other.uploadStatus == uploadStatus)&&(identical(other.connectivityStatus, connectivityStatus) || other.connectivityStatus == connectivityStatus)&&(identical(other.lastUploaded, lastUploaded) || other.lastUploaded == lastUploaded)&&(identical(other.uploadError, uploadError) || other.uploadError == uploadError));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentLoaded&&const DeepCollectionEquality().equals(other._documents, _documents)&&(identical(other.uploadStatus, uploadStatus) || other.uploadStatus == uploadStatus)&&(identical(other.connectivityStatus, connectivityStatus) || other.connectivityStatus == connectivityStatus)&&(identical(other.lastUploaded, lastUploaded) || other.lastUploaded == lastUploaded)&&(identical(other.uploadError, uploadError) || other.uploadError == uploadError)&&(identical(other.draftType, draftType) || other.draftType == draftType)&&(identical(other.draftFile, draftFile) || other.draftFile == draftFile)&&(identical(other.activePickerSource, activePickerSource) || other.activePickerSource == activePickerSource));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_documents),uploadStatus,connectivityStatus,lastUploaded,uploadError);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_documents),uploadStatus,connectivityStatus,lastUploaded,uploadError,draftType,draftFile,activePickerSource);
 
 @override
 String toString() {
-  return 'DocumentState.loaded(documents: $documents, uploadStatus: $uploadStatus, connectivityStatus: $connectivityStatus, lastUploaded: $lastUploaded, uploadError: $uploadError)';
+  return 'DocumentState.loaded(documents: $documents, uploadStatus: $uploadStatus, connectivityStatus: $connectivityStatus, lastUploaded: $lastUploaded, uploadError: $uploadError, draftType: $draftType, draftFile: $draftFile, activePickerSource: $activePickerSource)';
 }
 
 
@@ -296,7 +299,7 @@ abstract mixin class $DocumentLoadedCopyWith<$Res> implements $DocumentStateCopy
   factory $DocumentLoadedCopyWith(DocumentLoaded value, $Res Function(DocumentLoaded) _then) = _$DocumentLoadedCopyWithImpl;
 @useResult
 $Res call({
- List<VerificationDocument> documents, DocumentUploadStatus uploadStatus, ConnectivityStatus connectivityStatus, VerificationDocument? lastUploaded, String? uploadError
+ List<VerificationDocument> documents, DocumentUploadStatus uploadStatus, ConnectivityStatus connectivityStatus, VerificationDocument? lastUploaded, String? uploadError, DocumentType? draftType, SelectedFile? draftFile, FileSource? activePickerSource
 });
 
 
@@ -313,14 +316,17 @@ class _$DocumentLoadedCopyWithImpl<$Res>
 
 /// Create a copy of DocumentState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? documents = null,Object? uploadStatus = null,Object? connectivityStatus = null,Object? lastUploaded = freezed,Object? uploadError = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? documents = null,Object? uploadStatus = null,Object? connectivityStatus = null,Object? lastUploaded = freezed,Object? uploadError = freezed,Object? draftType = freezed,Object? draftFile = freezed,Object? activePickerSource = freezed,}) {
   return _then(DocumentLoaded(
 documents: null == documents ? _self._documents : documents // ignore: cast_nullable_to_non_nullable
 as List<VerificationDocument>,uploadStatus: null == uploadStatus ? _self.uploadStatus : uploadStatus // ignore: cast_nullable_to_non_nullable
 as DocumentUploadStatus,connectivityStatus: null == connectivityStatus ? _self.connectivityStatus : connectivityStatus // ignore: cast_nullable_to_non_nullable
 as ConnectivityStatus,lastUploaded: freezed == lastUploaded ? _self.lastUploaded : lastUploaded // ignore: cast_nullable_to_non_nullable
 as VerificationDocument?,uploadError: freezed == uploadError ? _self.uploadError : uploadError // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,draftType: freezed == draftType ? _self.draftType : draftType // ignore: cast_nullable_to_non_nullable
+as DocumentType?,draftFile: freezed == draftFile ? _self.draftFile : draftFile // ignore: cast_nullable_to_non_nullable
+as SelectedFile?,activePickerSource: freezed == activePickerSource ? _self.activePickerSource : activePickerSource // ignore: cast_nullable_to_non_nullable
+as FileSource?,
   ));
 }
 

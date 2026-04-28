@@ -2,7 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:polyops_assessment/domain/entities/task_status.dart';
-import 'package:polyops_assessment/presentation/task/bloc/board_bloc.dart';
+import 'package:polyops_assessment/presentation/task/board/bloc/board_bloc.dart';
 
 import '../../../helpers/test_helpers.dart';
 

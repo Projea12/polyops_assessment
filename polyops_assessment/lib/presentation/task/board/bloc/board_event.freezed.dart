@@ -17,6 +17,7 @@ mixin _$BoardEvent {
 
 
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardEvent);
@@ -43,6 +44,17 @@ $BoardEventCopyWith(BoardEvent _, $Res Function(BoardEvent) __);
 /// Adds pattern-matching-related methods to [BoardEvent].
 extension BoardEventPatterns on BoardEvent {
 /// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
 @optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadBoard value)?  loadBoard,TResult Function( MoveTask value)?  moveTask,TResult Function( DragStarted value)?  dragStarted,TResult Function( DragEnded value)?  dragEnded,TResult Function( HoverColumn value)?  hoverColumn,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
@@ -57,6 +69,18 @@ return hoverColumn(_that);case _:
 }
 }
 /// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
 @optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadBoard value)  loadBoard,required TResult Function( MoveTask value)  moveTask,required TResult Function( DragStarted value)  dragStarted,required TResult Function( DragEnded value)  dragEnded,required TResult Function( HoverColumn value)  hoverColumn,}){
 final _that = this;
 switch (_that) {
@@ -68,6 +92,17 @@ return dragEnded(_that);case HoverColumn():
 return hoverColumn(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
 @optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadBoard value)?  loadBoard,TResult? Function( MoveTask value)?  moveTask,TResult? Function( DragStarted value)?  dragStarted,TResult? Function( DragEnded value)?  dragEnded,TResult? Function( HoverColumn value)?  hoverColumn,}){
 final _that = this;
 switch (_that) {
@@ -82,6 +117,17 @@ return hoverColumn(_that);case _:
 }
 }
 /// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadBoard,TResult Function( String taskId,  TaskStatus from,  TaskStatus to,  int newPosition)?  moveTask,TResult Function( String taskId)?  dragStarted,TResult Function()?  dragEnded,TResult Function( TaskStatus? status)?  hoverColumn,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadBoard() when loadBoard != null:
@@ -95,6 +141,18 @@ return hoverColumn(_that.status);case _:
 }
 }
 /// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
 @optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadBoard,required TResult Function( String taskId,  TaskStatus from,  TaskStatus to,  int newPosition)  moveTask,required TResult Function( String taskId)  dragStarted,required TResult Function()  dragEnded,required TResult Function( TaskStatus? status)  hoverColumn,}) {final _that = this;
 switch (_that) {
 case LoadBoard():
@@ -105,6 +163,17 @@ return dragEnded();case HoverColumn():
 return hoverColumn(_that.status);}
 }
 /// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadBoard,TResult? Function( String taskId,  TaskStatus from,  TaskStatus to,  int newPosition)?  moveTask,TResult? Function( String taskId)?  dragStarted,TResult? Function()?  dragEnded,TResult? Function( TaskStatus? status)?  hoverColumn,}) {final _that = this;
 switch (_that) {
 case LoadBoard() when loadBoard != null:
@@ -125,6 +194,8 @@ return hoverColumn(_that.status);case _:
 
 class LoadBoard implements BoardEvent {
   const LoadBoard();
+  
+
 
 
 
@@ -155,7 +226,7 @@ String toString() {
 
 class MoveTask implements BoardEvent {
   const MoveTask({required this.taskId, required this.from, required this.to, required this.newPosition});
-
+  
 
  final  String taskId;
  final  TaskStatus from;
@@ -227,7 +298,7 @@ as int,
 
 class DragStarted implements BoardEvent {
   const DragStarted({required this.taskId});
-
+  
 
  final  String taskId;
 
@@ -293,6 +364,8 @@ as String,
 
 class DragEnded implements BoardEvent {
   const DragEnded();
+  
+
 
 
 
@@ -323,7 +396,7 @@ String toString() {
 
 class HoverColumn implements BoardEvent {
   const HoverColumn({this.status});
-
+  
 
  final  TaskStatus? status;
 

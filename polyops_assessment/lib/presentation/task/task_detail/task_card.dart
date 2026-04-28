@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:polyops_assessment/presentation/task/task_detail_sheet.dart';
+import 'package:polyops_assessment/presentation/task/task_detail/task_detail_sheet.dart';
 
-import '../../../domain/entities/board_task.dart';
-import '../../../domain/entities/task_priority.dart';
-import '../../../domain/entities/task_status.dart';
-import 'bloc/board_bloc.dart';
+import '../../../../domain/entities/board_task.dart';
+import '../../../../domain/entities/task_priority.dart';
+import '../../../../domain/entities/task_status.dart';
+import '../board/bloc/board_bloc.dart';
 
 class TaskDragData {
   final BoardTask task;

@@ -1,10 +1,9 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_theme_extension.dart';
 import '../../../domain/entities/document_type.dart';
+import '../../../domain/entities/file_source.dart';
 import '../bloc/document_bloc.dart';
 import '../document_theme.dart';
 
@@ -21,98 +20,15 @@ class DocumentUploadSheet extends StatelessWidget {
         value: bloc,
         child: const DocumentUploadSheet._(),
       ),
-    );
+    ).then((_) => bloc.add(const DocumentDraftCleared()));
   }
 
   @override
   Widget build(BuildContext context) => const _UploadContent();
 }
 
-class _UploadContent extends StatefulWidget {
+class _UploadContent extends StatelessWidget {
   const _UploadContent();
-
-  @override
-  State<_UploadContent> createState() => _UploadContentState();
-}
-
-class _UploadContentState extends State<_UploadContent> {
-  DocumentType? _selectedType;
-  String? _selectedPath;
-  String? _selectedName;
-  int? _selectedSize;
-  String? _selectedSource; // 'gallery' | 'camera' | 'pdf'
-
-  bool get _canUpload => _selectedType != null && _selectedPath != null;
-
-  Future<void> _pickFromGallery() async {
-    setState(() => _selectedSource = 'gallery');
-    final picker = ImagePicker();
-    final image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 2048,
-      maxHeight: 2048,
-    );
-    if (image == null) {
-      setState(() => _selectedSource = null);
-      return;
-    }
-    final bytes = await image.readAsBytes();
-    setState(() {
-      _selectedPath = image.path;
-      _selectedName = image.name;
-      _selectedSize = bytes.length;
-    });
-  }
-
-  Future<void> _pickFromCamera() async {
-    setState(() => _selectedSource = 'camera');
-    final picker = ImagePicker();
-    final image = await picker.pickImage(
-      source: ImageSource.camera,
-      maxWidth: 2048,
-      maxHeight: 2048,
-    );
-    if (image == null) {
-      setState(() => _selectedSource = null);
-      return;
-    }
-    final bytes = await image.readAsBytes();
-    setState(() {
-      _selectedPath = image.path;
-      _selectedName = image.name;
-      _selectedSize = bytes.length;
-    });
-  }
-
-  Future<void> _pickPdf() async {
-    setState(() => _selectedSource = 'pdf');
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result == null || result.files.isEmpty) {
-      setState(() => _selectedSource = null);
-      return;
-    }
-    final file = result.files.first;
-    if (file.path == null) {
-      setState(() => _selectedSource = null);
-      return;
-    }
-    setState(() {
-      _selectedPath = file.path;
-      _selectedName = file.name;
-      _selectedSize = file.size;
-    });
-  }
-
-  void _submit(BuildContext context) {
-    if (!_canUpload) return;
-    context.read<DocumentBloc>().add(DocumentEvent.uploadRequested(
-          filePath: _selectedPath!,
-          type: _selectedType!,
-        ));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,166 +48,169 @@ class _UploadContentState extends State<_UploadContent> {
           Navigator.of(context).pop();
         }
       },
-      child: Container(
-        margin: EdgeInsets.only(bottom: bottom),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: ext.borderLight,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+      child: BlocBuilder<DocumentBloc, DocumentState>(
+        builder: (context, state) {
+          final loaded = state is DocumentLoaded ? state : null;
+          final uploading =
+              loaded?.uploadStatus == DocumentUploadStatus.uploading;
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-              child: Text('Upload Document', style: tt.headlineMedium),
+          return Container(
+            margin: EdgeInsets.only(bottom: bottom),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: Text(
-                'Select document type and choose a file.',
-                style: tt.bodyMedium?.copyWith(color: ext.textSecondary),
-              ),
-            ),
-
-            // Document type selector
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-              child: Text(
-                'DOCUMENT TYPE',
-                style: tt.labelMedium?.copyWith(
-                  color: ext.textTertiary,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: Row(
-                children: DocumentType.values
-                    .map((type) => Expanded(
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 4),
-                            child: _TypeChip(
-                              type: type,
-                              selected: _selectedType == type,
-                              onTap: () =>
-                                  setState(() => _selectedType = type),
-                            ),
-                          ),
-                        ))
-                    .toList(),
-              ),
-            ),
-
-            // File source
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-              child: Text(
-                'SELECT FILE',
-                style: tt.labelMedium?.copyWith(
-                  color: ext.textTertiary,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-              child: Row(
-                children: [
-                  _SourceButton(
-                    icon: Icons.photo_library_rounded,
-                    label: 'Gallery',
-                    selected: _selectedSource == 'gallery',
-                    onTap: _pickFromGallery,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ext.borderLight,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  _SourceButton(
-                    icon: Icons.camera_alt_rounded,
-                    label: 'Camera',
-                    selected: _selectedSource == 'camera',
-                    onTap: _pickFromCamera,
-                  ),
-                  const SizedBox(width: 8),
-                  _SourceButton(
-                    icon: Icons.picture_as_pdf_rounded,
-                    label: 'PDF',
-                    selected: _selectedSource == 'pdf',
-                    onTap: _pickPdf,
-                  ),
-                ],
-              ),
-            ),
-
-            // Selected file info
-            if (_selectedPath != null)
-              Container(
-                margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: ext.brandGreenSurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: ext.brandGreenBorder),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.insert_drive_file_rounded,
-                        size: 18, color: cs.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _selectedName ?? 'Selected file',
-                            style: tt.bodyLarge,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (_selectedSize != null)
-                            Text(
-                              '${(_selectedSize! / 1024).toStringAsFixed(1)} KB',
-                              style: tt.labelSmall
-                                  ?.copyWith(color: ext.textSecondary),
-                            ),
-                        ],
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                  child: Text('Upload Document', style: tt.headlineMedium),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Text(
+                    'Select document type and choose a file.',
+                    style: tt.bodyMedium?.copyWith(color: ext.textSecondary),
+                  ),
+                ),
+
+                // Document type selector
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                  child: Text(
+                    'DOCUMENT TYPE',
+                    style: tt.labelMedium?.copyWith(
+                      color: ext.textTertiary,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: Row(
+                    children: DocumentType.values
+                        .map((type) => Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4),
+                                child: _TypeChip(
+                                  type: type,
+                                  selected: loaded?.draftType == type,
+                                  onTap: () => context
+                                      .read<DocumentBloc>()
+                                      .add(DocumentTypeSelected(type)),
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ),
+
+                // File source
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                  child: Text(
+                    'SELECT FILE',
+                    style: tt.labelMedium?.copyWith(
+                      color: ext.textTertiary,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  child: Row(
+                    children: [
+                      _SourceButton(
+                        icon: Icons.photo_library_rounded,
+                        label: 'Gallery',
+                        selected:
+                            loaded?.activePickerSource == FileSource.gallery,
+                        onTap: () => context.read<DocumentBloc>().add(
+                            const DocumentPickFileRequested(FileSource.gallery)),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () => setState(() {
-                        _selectedPath = null;
-                        _selectedName = null;
-                        _selectedSize = null;
-                        _selectedSource = null;
-                      }),
-                      child: Icon(Icons.close_rounded,
-                          size: 16, color: ext.textTertiary),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      _SourceButton(
+                        icon: Icons.camera_alt_rounded,
+                        label: 'Camera',
+                        selected:
+                            loaded?.activePickerSource == FileSource.camera,
+                        onTap: () => context.read<DocumentBloc>().add(
+                            const DocumentPickFileRequested(FileSource.camera)),
+                      ),
+                      const SizedBox(width: 8),
+                      _SourceButton(
+                        icon: Icons.picture_as_pdf_rounded,
+                        label: 'PDF',
+                        selected: loaded?.activePickerSource == FileSource.pdf,
+                        onTap: () => context.read<DocumentBloc>().add(
+                            const DocumentPickFileRequested(FileSource.pdf)),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-            // Upload button
-            BlocBuilder<DocumentBloc, DocumentState>(
-              builder: (context, state) {
-                final uploading = state is DocumentLoaded &&
-                    state.uploadStatus == DocumentUploadStatus.uploading;
-                return Padding(
+                // Selected file info
+                if (loaded?.draftFile != null)
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: ext.brandGreenSurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: ext.brandGreenBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.insert_drive_file_rounded,
+                            size: 18, color: cs.primary),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                loaded!.draftFile!.name,
+                                style: tt.bodyLarge,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '${(loaded.draftFile!.size / 1024).toStringAsFixed(1)} KB',
+                                style: tt.labelSmall
+                                    ?.copyWith(color: ext.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => context
+                              .read<DocumentBloc>()
+                              .add(const DocumentFileCleared()),
+                          child: Icon(Icons.close_rounded,
+                              size: 16, color: ext.textTertiary),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Upload button
+                Padding(
                   padding: EdgeInsets.fromLTRB(
                       16,
                       20,
@@ -301,8 +220,10 @@ class _UploadContentState extends State<_UploadContent> {
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: (_canUpload && !uploading)
-                          ? () => _submit(context)
+                      onPressed: ((loaded?.canUpload ?? false) && !uploading)
+                          ? () => context
+                              .read<DocumentBloc>()
+                              .add(const DocumentUploadRequested())
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: cs.primary,
@@ -326,11 +247,11 @@ class _UploadContentState extends State<_UploadContent> {
                             ),
                     ),
                   ),
-                );
-              },
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
