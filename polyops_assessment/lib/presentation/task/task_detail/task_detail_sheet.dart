@@ -11,7 +11,7 @@ import '../../../../domain/entities/comment.dart';
 import '../../../../domain/entities/task.dart';
 import '../../../../domain/entities/task_priority.dart';
 import '../../../../domain/entities/task_status.dart';
-import 'task_detail_bloc/task_detail_bloc.dart';
+import 'bloc/task_detail_bloc.dart';
 
 class TaskDetailSheet extends StatelessWidget {
   final String taskId;

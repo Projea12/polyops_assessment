@@ -125,10 +125,10 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  idle,TResult Function()?  submitting,TResult Function()?  success,TResult Function( String message)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TaskPriority draftPriority,  DateTime? draftDueDate)?  idle,TResult Function()?  submitting,TResult Function()?  success,TResult Function( String message)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TaskFormIdle() when idle != null:
-return idle();case TaskFormSubmitting() when submitting != null:
+return idle(_that.draftPriority,_that.draftDueDate);case TaskFormSubmitting() when submitting != null:
 return submitting();case TaskFormSuccess() when success != null:
 return success();case TaskFormFailure() when failure != null:
 return failure(_that.message);case _:
@@ -149,10 +149,10 @@ return failure(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  idle,required TResult Function()  submitting,required TResult Function()  success,required TResult Function( String message)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TaskPriority draftPriority,  DateTime? draftDueDate)  idle,required TResult Function()  submitting,required TResult Function()  success,required TResult Function( String message)  failure,}) {final _that = this;
 switch (_that) {
 case TaskFormIdle():
-return idle();case TaskFormSubmitting():
+return idle(_that.draftPriority,_that.draftDueDate);case TaskFormSubmitting():
 return submitting();case TaskFormSuccess():
 return success();case TaskFormFailure():
 return failure(_that.message);}
@@ -169,10 +169,10 @@ return failure(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  idle,TResult? Function()?  submitting,TResult? Function()?  success,TResult? Function( String message)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TaskPriority draftPriority,  DateTime? draftDueDate)?  idle,TResult? Function()?  submitting,TResult? Function()?  success,TResult? Function( String message)?  failure,}) {final _that = this;
 switch (_that) {
 case TaskFormIdle() when idle != null:
-return idle();case TaskFormSubmitting() when submitting != null:
+return idle(_that.draftPriority,_that.draftDueDate);case TaskFormSubmitting() when submitting != null:
 return submitting();case TaskFormSuccess() when success != null:
 return success();case TaskFormFailure() when failure != null:
 return failure(_that.message);case _:
@@ -187,33 +187,69 @@ return failure(_that.message);case _:
 
 
 class TaskFormIdle implements TaskFormState {
-  const TaskFormIdle();
+  const TaskFormIdle({this.draftPriority = TaskPriority.medium, this.draftDueDate});
   
 
+@JsonKey() final  TaskPriority draftPriority;
+ final  DateTime? draftDueDate;
 
-
+/// Create a copy of TaskFormState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TaskFormIdleCopyWith<TaskFormIdle> get copyWith => _$TaskFormIdleCopyWithImpl<TaskFormIdle>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskFormIdle);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskFormIdle&&(identical(other.draftPriority, draftPriority) || other.draftPriority == draftPriority)&&(identical(other.draftDueDate, draftDueDate) || other.draftDueDate == draftDueDate));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,draftPriority,draftDueDate);
 
 @override
 String toString() {
-  return 'TaskFormState.idle()';
+  return 'TaskFormState.idle(draftPriority: $draftPriority, draftDueDate: $draftDueDate)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $TaskFormIdleCopyWith<$Res> implements $TaskFormStateCopyWith<$Res> {
+  factory $TaskFormIdleCopyWith(TaskFormIdle value, $Res Function(TaskFormIdle) _then) = _$TaskFormIdleCopyWithImpl;
+@useResult
+$Res call({
+ TaskPriority draftPriority, DateTime? draftDueDate
+});
 
 
+
+
+}
+/// @nodoc
+class _$TaskFormIdleCopyWithImpl<$Res>
+    implements $TaskFormIdleCopyWith<$Res> {
+  _$TaskFormIdleCopyWithImpl(this._self, this._then);
+
+  final TaskFormIdle _self;
+  final $Res Function(TaskFormIdle) _then;
+
+/// Create a copy of TaskFormState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? draftPriority = null,Object? draftDueDate = freezed,}) {
+  return _then(TaskFormIdle(
+draftPriority: null == draftPriority ? _self.draftPriority : draftPriority // ignore: cast_nullable_to_non_nullable
+as TaskPriority,draftDueDate: freezed == draftDueDate ? _self.draftDueDate : draftDueDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
 
 /// @nodoc
 

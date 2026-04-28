@@ -6,7 +6,7 @@ import '../../../../domain/entities/task_status.dart';
 import '../../sync/bloc/sync_bloc.dart';
 import 'bloc/board_bloc.dart';
 import 'board_column.dart';
-import '../conflict_resolution_sheet.dart';
+import '../../sync/conflict_resolution_sheet.dart';
 import '../task_form/task_form_sheet.dart';
 
 

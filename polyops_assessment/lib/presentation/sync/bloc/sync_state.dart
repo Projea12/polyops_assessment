@@ -1,14 +1,14 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../domain/entities/sync_conflict.dart';
 
-class SyncState {
-  final List<SyncConflict> conflicts;
-  final bool isSyncing;
+part 'sync_state.freezed.dart';
 
-  const SyncState({this.conflicts = const [], this.isSyncing = false});
-
-  SyncState copyWith({List<SyncConflict>? conflicts, bool? isSyncing}) =>
-      SyncState(
-        conflicts: conflicts ?? this.conflicts,
-        isSyncing: isSyncing ?? this.isSyncing,
-      );
+@freezed
+sealed class SyncState with _$SyncState {
+  const factory SyncState({
+    @Default(<SyncConflict>[]) List<SyncConflict> conflicts,
+    @Default(false) bool isSyncing,
+    @Default(<String>{}) Set<String> resolvingIds,
+  }) = _SyncState;
 }

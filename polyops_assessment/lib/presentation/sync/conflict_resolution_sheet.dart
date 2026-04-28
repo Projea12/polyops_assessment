@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../domain/entities/sync_conflict.dart';
-import '../sync/bloc/sync_bloc.dart';
+import 'bloc/sync_bloc.dart';
 
-class ConflictResolutionSheet extends StatefulWidget {
+class ConflictResolutionSheet extends StatelessWidget {
   const ConflictResolutionSheet._();
 
   static Future<void> show(BuildContext context) {
@@ -22,33 +22,10 @@ class ConflictResolutionSheet extends StatefulWidget {
   }
 
   @override
-  State<ConflictResolutionSheet> createState() =>
-      _ConflictResolutionSheetState();
-}
-
-class _ConflictResolutionSheetState extends State<ConflictResolutionSheet> {
-  final Set<String> _resolving = {};
-
-  void _resolve(SyncConflict conflict, {required bool keepLocal}) {
-    setState(() => _resolving.add(conflict.taskId));
-    context.read<SyncBloc>().add(
-          ConflictResolved(conflict: conflict, keepLocal: keepLocal),
-        );
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocListener<SyncBloc, SyncState>(
       listener: (context, state) {
-        if (state.conflicts.isEmpty) {
-          Navigator.pop(context);
-          return;
-        }
-        setState(() {
-          _resolving.removeWhere(
-            (id) => !state.conflicts.any((c) => c.taskId == id),
-          );
-        });
+        if (state.conflicts.isEmpty) Navigator.pop(context);
       },
       child: BlocBuilder<SyncBloc, SyncState>(
         builder: (context, state) {
@@ -71,15 +48,21 @@ class _ConflictResolutionSheetState extends State<ConflictResolutionSheet> {
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                     itemCount: state.conflicts.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 16),
-                    itemBuilder: (_, i) => _ConflictCard(
-                      conflict: state.conflicts[i],
-                      isResolving:
-                          _resolving.contains(state.conflicts[i].taskId),
-                      onKeepLocal: () =>
-                          _resolve(state.conflicts[i], keepLocal: true),
-                      onUseServer: () =>
-                          _resolve(state.conflicts[i], keepLocal: false),
-                    ),
+                    itemBuilder: (_, i) {
+                      final conflict = state.conflicts[i];
+                      return _ConflictCard(
+                        conflict: conflict,
+                        isResolving: state.resolvingIds.contains(conflict.taskId),
+                        onKeepLocal: () => context.read<SyncBloc>().add(
+                              ConflictResolved(
+                                  conflict: conflict, keepLocal: true),
+                            ),
+                        onUseServer: () => context.read<SyncBloc>().add(
+                              ConflictResolved(
+                                  conflict: conflict, keepLocal: false),
+                            ),
+                      );
+                    },
                   ),
                 ),
               ],

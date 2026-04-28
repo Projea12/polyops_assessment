@@ -10,21 +10,16 @@ import 'sync_state.dart';
 export 'sync_event.dart';
 export 'sync_state.dart';
 
-// Internal startup event — subscribes to the conflicts stream via emit.forEach.
-final class _SyncStarted extends SyncEvent {
-  const _SyncStarted();
-}
-
 @injectable
 class SyncBloc extends Bloc<SyncEvent, SyncState> with WidgetsBindingObserver {
   final ISyncService _syncService;
 
   SyncBloc(this._syncService)
       : super(SyncState(conflicts: _syncService.conflicts)) {
-    on<_SyncStarted>(_onStarted, transformer: restartable());
+    on<SyncStarted>(_onStarted, transformer: restartable());
     on<SyncTriggered>(_onSyncTriggered, transformer: droppable());
     on<ConflictResolved>(_onConflictResolved, transformer: sequential());
-    add(const _SyncStarted());
+    add(const SyncStarted());
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -40,12 +35,18 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> with WidgetsBindingObserver {
   }
 
   Future<void> _onStarted(
-    _SyncStarted event,
+    SyncStarted event,
     Emitter<SyncState> emit,
   ) async {
     await emit.forEach(
       _syncService.conflictsStream,
-      onData: (conflicts) => state.copyWith(conflicts: conflicts),
+      onData: (conflicts) {
+        final remaining = conflicts.map((c) => c.taskId).toSet();
+        return state.copyWith(
+          conflicts: conflicts,
+          resolvingIds: state.resolvingIds.intersection(remaining),
+        );
+      },
     );
   }
 
@@ -62,6 +63,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> with WidgetsBindingObserver {
     ConflictResolved event,
     Emitter<SyncState> emit,
   ) async {
+    emit(state.copyWith(
+      resolvingIds: {...state.resolvingIds, event.conflict.taskId},
+    ));
     await _syncService.resolveConflict(
       event.conflict,
       keepLocal: event.keepLocal,

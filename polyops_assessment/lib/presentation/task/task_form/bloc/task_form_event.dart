@@ -1,5 +1,5 @@
-
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../../domain/entities/task_priority.dart';
 
 part 'task_form_event.freezed.dart';
@@ -13,6 +13,10 @@ sealed class TaskFormEvent with _$TaskFormEvent {
     required TaskPriority priority,
     DateTime? dueDate,
   }) = TaskFormSubmitted;
+
+  const factory TaskFormEvent.priorityChanged(TaskPriority priority) =
+      TaskFormPriorityChanged;
+
+  const factory TaskFormEvent.dueDateChanged(DateTime? dueDate) =
+      TaskFormDueDateChanged;
 }
-
-

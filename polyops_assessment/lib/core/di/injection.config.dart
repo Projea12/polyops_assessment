@@ -88,11 +88,11 @@ import 'package:polyops_assessment/presentation/documents/detail/bloc/document_d
 import 'package:polyops_assessment/presentation/sync/bloc/sync_bloc.dart'
     as _i293;
 import 'package:polyops_assessment/presentation/task/board/bloc/board_bloc.dart'
-    as _i276;
-import 'package:polyops_assessment/presentation/task/task_detail/task_detail_bloc/task_detail_bloc.dart'
-    as _i899;
-import 'package:polyops_assessment/presentation/task/task_form/task_form_bloc/task_form_bloc.dart'
-    as _i807;
+    as _i93;
+import 'package:polyops_assessment/presentation/task/task_detail/bloc/task_detail_bloc.dart'
+    as _i1058;
+import 'package:polyops_assessment/presentation/task/task_form/bloc/task_form_bloc.dart'
+    as _i563;
 
 const String _dev = 'dev';
 const String _test = 'test';
@@ -192,8 +192,8 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1005.FileProcessingService>(),
       )..init(),
     );
-    gh.factory<_i899.TaskDetailBloc>(
-      () => _i899.TaskDetailBloc(
+    gh.factory<_i1058.TaskDetailBloc>(
+      () => _i1058.TaskDetailBloc(
         gh<_i506.WatchTaskUseCase>(),
         gh<_i67.UpdateTaskUseCase>(),
         gh<_i621.DeleteTaskUseCase>(),
@@ -215,8 +215,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i921.WatchDocumentUseCase>(
       () => _i921.WatchDocumentUseCase(gh<_i147.IDocumentRepository>()),
     );
-    gh.factory<_i807.TaskFormBloc>(
-      () => _i807.TaskFormBloc(gh<_i1.CreateTaskUseCase>()),
+    gh.factory<_i563.TaskFormBloc>(
+      () => _i563.TaskFormBloc(gh<_i1.CreateTaskUseCase>()),
     );
     gh.factory<_i293.SyncBloc>(() => _i293.SyncBloc(gh<_i123.ISyncService>()));
     gh.factory<_i838.DocumentDetailBloc>(
@@ -226,8 +226,8 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i180.RetryVerificationUseCase>(),
       ),
     );
-    gh.factory<_i276.BoardBloc>(
-      () => _i276.BoardBloc(
+    gh.factory<_i93.BoardBloc>(
+      () => _i93.BoardBloc(
         gh<_i84.WatchBoardTasksByStatusUseCase>(),
         gh<_i1065.MoveTaskUseCase>(),
       ),

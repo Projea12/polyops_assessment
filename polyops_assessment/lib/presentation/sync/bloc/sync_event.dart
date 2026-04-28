@@ -1,17 +1,20 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../domain/entities/sync_conflict.dart';
 
-abstract class SyncEvent {
-  const SyncEvent();
-}
+part 'sync_event.freezed.dart';
 
-/// Dispatched on app init and on app lifecycle resume to flush the outbox.
-final class SyncTriggered extends SyncEvent {
-  const SyncTriggered();
-}
+@freezed
+sealed class SyncEvent with _$SyncEvent {
+  /// Internal — dispatched once in [SyncBloc] constructor to start the conflicts stream subscription.
+  const factory SyncEvent.started() = SyncStarted;
 
-/// Dispatched by the UI when the user resolves a conflict.
-final class ConflictResolved extends SyncEvent {
-  final SyncConflict conflict;
-  final bool keepLocal;
-  const ConflictResolved({required this.conflict, required this.keepLocal});
+  /// Dispatched on app init and on app lifecycle resume to flush the outbox.
+  const factory SyncEvent.triggered() = SyncTriggered;
+
+  /// Dispatched by the UI when the user resolves a conflict.
+  const factory SyncEvent.conflictResolved({
+    required SyncConflict conflict,
+    required bool keepLocal,
+  }) = ConflictResolved;
 }

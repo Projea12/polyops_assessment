@@ -4,7 +4,7 @@ import 'package:fpdart/fpdart.dart' hide Task;
 import 'package:mocktail/mocktail.dart';
 import 'package:polyops_assessment/domain/entities/task_priority.dart';
 import 'package:polyops_assessment/domain/entities/task_status.dart';
-import 'package:polyops_assessment/presentation/task/task_detail/task_detail_bloc/task_detail_bloc.dart';
+import 'package:polyops_assessment/presentation/task/task_detail/bloc/task_detail_bloc.dart';
 
 import '../../../helpers/test_helpers.dart';
 
@@ -82,8 +82,8 @@ void main() {
       'stream re-emits update loaded state with new task data',
       build: makeBloc,
       setUp: () {
-        final task1 = makeTask(title: 'First');
-        final task2 = makeTask(title: 'Updated');
+        final task1 = makeTask(title: 'First', updatedAt: DateTime(2025, 1, 1));
+        final task2 = makeTask(title: 'Updated', updatedAt: DateTime(2025, 1, 2));
         when(() => watchTask(any()))
             .thenAnswer((_) => Stream.fromIterable([task1, task2]));
       },

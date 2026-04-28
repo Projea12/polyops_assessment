@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -7,7 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../domain/entities/task_priority.dart';
-import 'task_form_bloc/task_form_bloc.dart';
+import 'bloc/task_form_bloc.dart';
 
 class TaskFormSheet extends StatelessWidget {
   const TaskFormSheet._();
@@ -30,43 +28,20 @@ class TaskFormSheet extends StatelessWidget {
   }
 }
 
-class _TaskFormContent extends StatefulWidget {
+class _TaskFormContent extends StatelessWidget {
   const _TaskFormContent();
-
-  @override
-  State<_TaskFormContent> createState() => _TaskFormContentState();
-}
-
-class _TaskFormContentState extends State<_TaskFormContent> {
-  final _titleController = TextEditingController();
-  final _quillController = QuillController.basic();
-  final _titleFocus = FocusNode();
-
-  TaskPriority _priority = TaskPriority.medium;
-  DateTime? _dueDate;
 
   static const _green = Color(0xFF1B5E37);
 
-  bool get _canSubmit =>
-      _titleController.text.trim().isNotEmpty && _dueDate != null;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _quillController.dispose();
-    _titleFocus.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDueDate() async {
+  static Future<void> _pickDueDate(
+    BuildContext context,
+    TaskFormBloc bloc,
+  ) async {
+    final currentDueDate =
+        bloc.state is TaskFormIdle ? (bloc.state as TaskFormIdle).draftDueDate : null;
     final now = DateTime.now();
-    final initial = _dueDate ?? now.add(const Duration(days: 1));
+    final initial = currentDueDate ?? now.add(const Duration(days: 1));
+
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -79,12 +54,12 @@ class _TaskFormContentState extends State<_TaskFormContent> {
         child: child!,
       ),
     );
-    if (pickedDate == null || !mounted) return;
+    if (pickedDate == null || !context.mounted) return;
 
     final pickedTime = await showTimePicker(
       context: context,
-      initialTime: _dueDate != null
-          ? TimeOfDay.fromDateTime(_dueDate!)
+      initialTime: currentDueDate != null
+          ? TimeOfDay.fromDateTime(currentDueDate)
           : const TimeOfDay(hour: 9, minute: 0),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
@@ -93,36 +68,23 @@ class _TaskFormContentState extends State<_TaskFormContent> {
         child: child!,
       ),
     );
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     final time = pickedTime ?? const TimeOfDay(hour: 9, minute: 0);
-    setState(() {
-      _dueDate = DateTime(
-        pickedDate.year, pickedDate.month, pickedDate.day,
-        time.hour, time.minute,
-      );
-    });
-  }
-
-  void _submit() {
-    final title = _titleController.text.trim();
-    if (title.isEmpty) {
-      _titleFocus.requestFocus();
-      return;
-    }
-    context.read<TaskFormBloc>().add(TaskFormSubmitted(
-      title: title,
-      description: _quillController.document.toPlainText().trim(),
-      richDescription:
-          jsonEncode(_quillController.document.toDelta().toJson()),
-      priority: _priority,
-      dueDate: _dueDate,
-    ));
+    bloc.add(TaskFormDueDateChanged(DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      time.hour,
+      time.minute,
+    )));
   }
 
   @override
   Widget build(BuildContext context) {
+    final bloc = context.read<TaskFormBloc>();
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+
     return BlocListener<TaskFormBloc, TaskFormState>(
       listener: (context, state) {
         if (state is TaskFormSuccess) Navigator.pop(context);
@@ -136,72 +98,84 @@ class _TaskFormContentState extends State<_TaskFormContent> {
       child: BlocBuilder<TaskFormBloc, TaskFormState>(
         builder: (context, state) {
           final isSubmitting = state is TaskFormSubmitting;
+          final idleState = state is TaskFormIdle ? state : null;
+
           return GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
             child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.92,
-            ),
-            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottom),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _SheetHandle(),
-                const SizedBox(height: 4),
-                const Text(
-                  'New Task',
-                  style:
-                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _TitleField(
-                          controller: _titleController,
-                          focusNode: _titleFocus,
-                        ),
-                        const SizedBox(height: 20),
-                        _SectionLabel('Description'),
-                        const SizedBox(height: 8),
-                        _RichDescriptionField(
-                            controller: _quillController),
-                        const SizedBox(height: 20),
-                        _SectionLabel('Priority'),
-                        const SizedBox(height: 8),
-                        _PrioritySelector(
-                          selected: _priority,
-                          onChanged: (p) =>
-                              setState(() => _priority = p),
-                        ),
-                        const SizedBox(height: 20),
-                        _SectionLabel('Due Date'),
-                        const SizedBox(height: 8),
-                        _DueDatePicker(
-                          selected: _dueDate,
-                          onTap: _pickDueDate,
-                          onClear: () =>
-                              setState(() => _dueDate = null),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.92,
+              ),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottom),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SheetHandle(),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'New Task',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _TitleField(
+                            controller: bloc.titleController,
+                            focusNode: bloc.titleFocus,
+                          ),
+                          const SizedBox(height: 20),
+                          _SectionLabel('Description'),
+                          const SizedBox(height: 8),
+                          _RichDescriptionField(
+                              controller: bloc.quillController),
+                          const SizedBox(height: 20),
+                          _SectionLabel('Priority'),
+                          const SizedBox(height: 8),
+                          _PrioritySelector(
+                            selected:
+                                idleState?.draftPriority ?? TaskPriority.medium,
+                            onChanged: (p) =>
+                                bloc.add(TaskFormPriorityChanged(p)),
+                          ),
+                          const SizedBox(height: 20),
+                          _SectionLabel('Due Date'),
+                          const SizedBox(height: 8),
+                          _DueDatePicker(
+                            selected: idleState?.draftDueDate,
+                            onTap: () => _pickDueDate(context, bloc),
+                            onClear: () => bloc
+                                .add(const TaskFormDueDateChanged(null)),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                _SubmitButton(
-                  isLoading: isSubmitting,
-                  canSubmit: _canSubmit && !isSubmitting,
-                  onPressed: _submit,
-                ),
-              ],
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: bloc.titleController,
+                    builder: (_, titleValue, _) {
+                      final canSubmit =
+                          titleValue.text.trim().isNotEmpty &&
+                              idleState?.draftDueDate != null &&
+                              !isSubmitting;
+                      return _SubmitButton(
+                        isLoading: isSubmitting,
+                        canSubmit: canSubmit,
+                        onPressed: bloc.submit,
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ));
+          );
         },
       ),
     );
